@@ -1,0 +1,1595 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>iMersWALLET - Modern Financial Workspace</title>
+    
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Poppins', 'sans-serif'],
+                    },
+                    colors: {
+                        background: 'var(--bg-color)',
+                        surface: 'var(--surface-color)',
+                        primary: 'var(--primary-color)',
+                        textMain: 'var(--text-main)',
+                        textMuted: 'var(--text-muted)',
+                        border: 'var(--border-color)',
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        :root {
+            /* Default Soft Light Neumorphism Theme */
+            --bg-color: #e6eef5;
+            --surface-color: #e6eef5;
+            --primary-color: #00a8cc; 
+            --text-main: #2b3648;
+            --text-muted: #64748b;
+            --border-color: rgba(255, 255, 255, 0.6);
+            --border-light: rgba(0, 0, 0, 0.05);
+            --hover-bg: rgba(255, 255, 255, 0.5);
+            
+            --neu-light: #ffffff;
+            --neu-dark: #b8c9db;
+            --glow-color: rgba(0, 168, 204, 0.3);
+            
+            /* Glassmorphism & Active States */
+            --glass-bg: rgba(255, 255, 255, 0.4);
+            --glass-shadow: rgba(184, 201, 219, 0.4);
+            --nav-active-bg: rgba(255, 255, 255, 0.6);
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            font-family: 'Poppins', sans-serif;
+            overflow-x: hidden;
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+
+        /* Neumorphism & Glassmorphism Utilities */
+        .neu-flat {
+            background: var(--surface-color);
+            box-shadow: 8px 8px 16px var(--neu-dark), 
+                       -8px -8px 16px var(--neu-light);
+            border-radius: 20px;
+            border: 1px solid var(--border-color);
+        }
+        
+        .neu-pressed {
+            background: var(--surface-color);
+            box-shadow: inset 6px 6px 12px var(--neu-dark), 
+                       inset -6px -6px 12px var(--neu-light);
+            border-radius: 20px;
+            border: 1px solid var(--border-light);
+        }
+
+        .glass {
+            background: var(--glass-bg);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            box-shadow: 4px 4px 15px var(--glass-shadow);
+        }
+
+        .glow-border {
+            border: 1px solid var(--primary-color);
+            box-shadow: 0 0 15px var(--glow-color);
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: var(--bg-color); }
+        ::-webkit-scrollbar-thumb { background: var(--surface-color); border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--primary-color); }
+
+        /* Animations */
+        .fade-in { animation: fadeIn 0.4s ease forwards; }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .nav-active {
+            color: var(--primary-color) !important;
+            background: var(--nav-active-bg);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
+        }
+
+        .mobile-nav-scroll::-webkit-scrollbar {
+            display: none;
+        }
+    </style>
+</head>
+<body class="antialiased h-screen flex flex-col md:flex-row overflow-hidden">
+
+    <!-- AUTH VIEW -->
+    <div id="view-auth" class="fixed inset-0 z-50 flex items-center justify-center bg-[var(--bg-color)] hidden">
+        <div class="glass p-8 w-[90%] max-w-md flex flex-col items-center fade-in">
+            <div class="w-20 h-20 rounded-full neu-flat flex items-center justify-center mb-6 text-[var(--primary-color)] text-3xl">
+                <i class="fa-solid fa-wallet"></i>
+            </div>
+            <h1 class="text-2xl font-bold mb-2 text-textMain">iMersWALLET</h1>
+            <p class="text-textMuted text-sm mb-8">Enter your 6-digit PIN</p>
+            
+            <div class="flex gap-4 mb-10 justify-center h-4" id="pin-indicators">
+                <div class="w-4 h-4 rounded-full border-2 border-[var(--primary-color)] transition-all duration-200"></div>
+                <div class="w-4 h-4 rounded-full border-2 border-[var(--primary-color)] transition-all duration-200"></div>
+                <div class="w-4 h-4 rounded-full border-2 border-[var(--primary-color)] transition-all duration-200"></div>
+                <div class="w-4 h-4 rounded-full border-2 border-[var(--primary-color)] transition-all duration-200"></div>
+                <div class="w-4 h-4 rounded-full border-2 border-[var(--primary-color)] transition-all duration-200"></div>
+                <div class="w-4 h-4 rounded-full border-2 border-[var(--primary-color)] transition-all duration-200"></div>
+            </div>
+
+            <div class="grid grid-cols-3 gap-4 md:gap-6 w-full max-w-[280px]">
+                <button onclick="app.inputPin('1')" class="h-14 neu-flat text-2xl font-semibold hover:text-[var(--primary-color)] active:neu-pressed transition text-textMain">1</button>
+                <button onclick="app.inputPin('2')" class="h-14 neu-flat text-2xl font-semibold hover:text-[var(--primary-color)] active:neu-pressed transition text-textMain">2</button>
+                <button onclick="app.inputPin('3')" class="h-14 neu-flat text-2xl font-semibold hover:text-[var(--primary-color)] active:neu-pressed transition text-textMain">3</button>
+                <button onclick="app.inputPin('4')" class="h-14 neu-flat text-2xl font-semibold hover:text-[var(--primary-color)] active:neu-pressed transition text-textMain">4</button>
+                <button onclick="app.inputPin('5')" class="h-14 neu-flat text-2xl font-semibold hover:text-[var(--primary-color)] active:neu-pressed transition text-textMain">5</button>
+                <button onclick="app.inputPin('6')" class="h-14 neu-flat text-2xl font-semibold hover:text-[var(--primary-color)] active:neu-pressed transition text-textMain">6</button>
+                <button onclick="app.inputPin('7')" class="h-14 neu-flat text-2xl font-semibold hover:text-[var(--primary-color)] active:neu-pressed transition text-textMain">7</button>
+                <button onclick="app.inputPin('8')" class="h-14 neu-flat text-2xl font-semibold hover:text-[var(--primary-color)] active:neu-pressed transition text-textMain">8</button>
+                <button onclick="app.inputPin('9')" class="h-14 neu-flat text-2xl font-semibold hover:text-[var(--primary-color)] active:neu-pressed transition text-textMain">9</button>
+                <button class="h-14 text-2xl font-semibold text-[var(--primary-color)] active:scale-90 transition"><i class="fa-solid fa-fingerprint"></i></button>
+                <button onclick="app.inputPin('0')" class="h-14 neu-flat text-2xl font-semibold hover:text-[var(--primary-color)] active:neu-pressed transition text-textMain">0</button>
+                <button onclick="app.deletePin()" class="h-14 text-xl font-semibold text-textMuted hover:text-red-400 active:scale-90 transition"><i class="fa-solid fa-delete-left"></i></button>
+            </div>
+        </div>
+    </div>
+
+    <!-- APP CONTAINER -->
+    <div id="app-container" class="w-full h-full flex flex-col md:flex-row hidden">
+        
+        <!-- SIDEBAR -->
+        <nav class="glass md:w-[280px] shrink-0 md:h-full h-[72px] w-full fixed md:relative bottom-0 z-40 flex md:flex-col py-2 md:py-8 px-2 md:px-6 overflow-x-auto md:overflow-y-auto mobile-nav-scroll border-t md:border-t-0 md:border-r border-[var(--border-color)]">
+            <div class="hidden md:flex items-center gap-3 mb-8 w-full px-2">
+                <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-[var(--primary-color)] to-blue-500 flex items-center justify-center text-white shadow-lg shadow-[var(--glow-color)]">
+                    <i class="fa-solid fa-wallet"></i>
+                </div>
+                <h2 class="text-xl font-bold tracking-wider text-textMain">iMersWALLET</h2>
+            </div>
+
+            <div class="flex md:flex-col w-max md:w-full gap-2 md:gap-1 flex-1 px-2 md:px-0 items-center md:items-stretch">
+                <button onclick="app.navigate('dashboard')" id="nav-dashboard" class="nav-btn nav-active flex flex-col md:flex-row items-center gap-1 md:gap-4 text-textMuted py-2 md:py-3.5 px-4 md:px-4 rounded-xl transition-all hover:bg-[var(--hover-bg)] font-medium text-sm w-20 md:w-full">
+                    <i class="fa-solid fa-table-cells-large text-xl md:text-lg md:w-6"></i>
+                    <span class="text-[10px] md:text-sm whitespace-nowrap">Dashboard Utama</span>
+                </button>
+                <button onclick="app.navigate('history')" id="nav-history" class="nav-btn flex flex-col md:flex-row items-center gap-1 md:gap-4 text-textMuted py-2 md:py-3.5 px-4 md:px-4 rounded-xl transition-all hover:bg-[var(--hover-bg)] font-medium text-sm w-20 md:w-full">
+                    <i class="fa-solid fa-clock-rotate-left text-xl md:text-lg md:w-6"></i>
+                    <span class="text-[10px] md:text-sm whitespace-nowrap">Riwayat Transaksi</span>
+                </button>
+                <button onclick="app.navigate('analysis')" id="nav-analysis" class="nav-btn flex flex-col md:flex-row items-center gap-1 md:gap-4 text-textMuted py-2 md:py-3.5 px-4 md:px-4 rounded-xl transition-all hover:bg-[var(--hover-bg)] font-medium text-sm w-20 md:w-full">
+                    <i class="fa-solid fa-chart-pie text-xl md:text-lg md:w-6"></i>
+                    <span class="text-[10px] md:text-sm whitespace-nowrap">Analisis Pengeluaran</span>
+                </button>
+                <button onclick="app.navigate('reports')" id="nav-reports" class="nav-btn flex flex-col md:flex-row items-center gap-1 md:gap-4 text-textMuted py-2 md:py-3.5 px-4 md:px-4 rounded-xl transition-all hover:bg-[var(--hover-bg)] font-medium text-sm w-20 md:w-full">
+                    <i class="fa-solid fa-file-invoice text-xl md:text-lg md:w-6"></i>
+                    <span class="text-[10px] md:text-sm whitespace-nowrap">Wallet Report</span>
+                </button>
+                <button onclick="app.navigate('chat')" id="nav-chat" class="nav-btn flex flex-col md:flex-row items-center gap-1 md:gap-4 text-textMuted py-2 md:py-3.5 px-4 md:px-4 rounded-xl transition-all hover:bg-[var(--hover-bg)] font-medium text-sm w-20 md:w-full">
+                    <i class="fa-regular fa-comment text-xl md:text-lg md:w-6"></i>
+                    <span class="text-[10px] md:text-sm whitespace-nowrap">Wallet Chat</span>
+                </button>
+                <button onclick="app.navigate('debt')" id="nav-debt" class="nav-btn flex flex-col md:flex-row items-center gap-1 md:gap-4 text-textMuted py-2 md:py-3.5 px-4 md:px-4 rounded-xl transition-all hover:bg-[var(--hover-bg)] font-medium text-sm w-20 md:w-full">
+                    <i class="fa-solid fa-hand-holding-dollar text-xl md:text-lg md:w-6"></i>
+                    <span class="text-[10px] md:text-sm whitespace-nowrap">Wallet Debt</span>
+                </button>
+                <button onclick="app.navigate('tutorial')" id="nav-tutorial" class="nav-btn flex flex-col md:flex-row items-center gap-1 md:gap-4 text-textMuted py-2 md:py-3.5 px-4 md:px-4 rounded-xl transition-all hover:bg-[var(--hover-bg)] font-medium text-sm w-20 md:w-full">
+                    <i class="fa-solid fa-book-open text-xl md:text-lg md:w-6"></i>
+                    <span class="text-[10px] md:text-sm whitespace-nowrap">Tutorial</span>
+                </button>
+                <button onclick="app.navigate('users')" id="nav-users" class="nav-btn flex flex-col md:flex-row items-center gap-1 md:gap-4 text-textMuted py-2 md:py-3.5 px-4 md:px-4 rounded-xl transition-all hover:bg-[var(--hover-bg)] font-medium text-sm w-20 md:w-full">
+                    <i class="fa-solid fa-users text-xl md:text-lg md:w-6"></i>
+                    <span class="text-[10px] md:text-sm whitespace-nowrap">Users & Access</span>
+                </button>
+                <button onclick="app.navigate('settings')" id="nav-settings" class="nav-btn flex flex-col md:flex-row items-center gap-1 md:gap-4 text-textMuted py-2 md:py-3.5 px-4 md:px-4 rounded-xl transition-all hover:bg-[var(--hover-bg)] font-medium text-sm w-20 md:w-full">
+                    <i class="fa-regular fa-user text-xl md:text-lg md:w-6"></i>
+                    <span class="text-[10px] md:text-sm whitespace-nowrap">Bot WA & Pengaturan</span>
+                </button>
+
+                <div class="hidden md:block w-full h-[1px] bg-[var(--border-color)] my-2"></div>
+
+                <button onclick="app.logout()" class="nav-btn flex flex-col md:flex-row items-center gap-1 md:gap-4 text-red-500 py-2 md:py-3.5 px-4 md:px-4 rounded-xl transition-all hover:bg-red-500/10 font-medium text-sm w-20 md:w-full">
+                    <i class="fa-solid fa-arrow-right-from-bracket text-xl md:text-lg md:w-6"></i>
+                    <span class="text-[10px] md:text-sm whitespace-nowrap">Keluar Sesi</span>
+                </button>
+            </div>
+
+            <div class="hidden md:flex flex-col mt-6 p-5 rounded-2xl bg-[var(--nav-active-bg)] border border-[var(--border-color)] shadow-sm gap-3 mx-2">
+                <div class="flex items-center gap-2 text-[var(--primary-color)] font-bold text-sm">
+                    <i class="fa-solid fa-wand-magic-sparkles"></i> CATAT CEPAT
+                </div>
+                <p class="text-xs text-textMuted leading-relaxed">
+                    Kirim chat WA ke bot asisten untuk mencatatkan pemasukan/pengeluaran secara instan.
+                </p>
+                <button onclick="app.navigate('chat')" class="w-full py-2.5 rounded-xl bg-[#0095FF] text-white font-medium text-xs flex items-center justify-center gap-2 hover:opacity-90 transition shadow-md">
+                    <i class="fa-regular fa-comment"></i> Chat Asisten WA
+                </button>
+            </div>
+            
+            <div class="hidden md:block mt-6 text-center text-[10px] text-textMuted/60 font-medium">
+                Developed by Terry Katar<br>iMersnesia.com
+            </div>
+        </nav>
+
+        <!-- MAIN CONTENT AREA (Clean & Standardized Padding) -->
+        <main class="flex-1 h-[calc(100vh-72px)] md:h-screen overflow-y-auto p-4 pt-6 md:p-8 md:pt-10 pb-24 md:pb-12 relative w-full">
+            
+            <!-- Global Wrapper for all views to ensure consistent width and left alignment -->
+            <div class="w-full max-w-[1400px]">
+            
+                <!-- DASHBOARD VIEW -->
+                <div id="view-dashboard" class="view-section fade-in w-full">
+                    <div class="flex justify-between items-center mb-8">
+                        <div>
+                            <h1 class="text-2xl md:text-3xl font-bold flex items-center text-textMain" id="welcome-greeting">Selamat Datang!</h1>
+                            <p class="text-sm font-medium italic mt-2 text-[var(--primary-color)]" id="quote-text">"Mengelola keuangan dengan cerdas."</p>
+                        </div>
+                        <div class="hidden md:flex gap-2">
+                            <button class="w-10 h-10 rounded-xl neu-flat flex items-center justify-center text-textMuted hover:text-[var(--primary-color)] transition"><i class="fa-solid fa-bell"></i></button>
+                            <button class="w-10 h-10 rounded-xl neu-flat flex items-center justify-center text-textMuted hover:text-[var(--primary-color)] transition"><i class="fa-solid fa-search"></i></button>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                        <div class="neu-flat p-6 relative overflow-hidden bg-gradient-to-br from-[var(--surface-color)] to-[var(--bg-color)]">
+                            <div class="absolute -right-6 -top-6 w-32 h-32 bg-[var(--primary-color)] opacity-20 rounded-full blur-2xl"></div>
+                            <div class="absolute -left-6 -bottom-6 w-24 h-24 bg-blue-400 opacity-20 rounded-full blur-xl"></div>
+                            <p class="text-textMuted text-sm font-medium mb-1">Total Balance</p>
+                            <h2 class="text-3xl font-bold tracking-tight text-textMain" id="dash-total-balance">Rp 0</h2>
+                            <div class="flex items-center gap-2 mt-4 text-xs font-bold text-green-500 bg-green-500/10 w-fit px-3 py-1 rounded-full">
+                                <i class="fa-solid fa-arrow-trend-up"></i> +2.4% this month
+                            </div>
+                        </div>
+                        <div class="neu-flat p-6">
+                            <div class="flex justify-between items-start">
+                                <div>
+                                    <p class="text-textMuted text-sm font-medium mb-1">Monthly Income</p>
+                                    <h2 class="text-xl font-bold text-green-500" id="dash-income">Rp 0</h2>
+                                </div>
+                                <div class="w-12 h-12 rounded-full neu-pressed flex items-center justify-center text-green-500 bg-[var(--surface-color)]">
+                                    <i class="fa-solid fa-arrow-down text-lg"></i>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="neu-flat p-6">
+                            <div class="flex justify-between items-start">
+                                <div>
+                                    <p class="text-textMuted text-sm font-medium mb-1">Monthly Expense</p>
+                                    <h2 class="text-xl font-bold text-red-500" id="dash-expense">Rp 0</h2>
+                                </div>
+                                <div class="w-12 h-12 rounded-full neu-pressed flex items-center justify-center text-red-500 bg-[var(--surface-color)]">
+                                    <i class="fa-solid fa-arrow-up text-lg"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="glass p-6 mb-8">
+                        <div class="flex justify-between items-center mb-6">
+                            <h3 class="font-semibold text-textMain">Cashflow Summary</h3>
+                            <select class="bg-transparent text-sm text-textMuted outline-none cursor-pointer">
+                                <option>This Week</option>
+                                <option>This Month</option>
+                                <option>This Year</option>
+                            </select>
+                        </div>
+                        <div class="w-full h-64 relative">
+                            <canvas id="cashflowChart"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="mb-8">
+                        <h3 class="font-semibold mb-4 text-lg text-textMain">Portofolio Keuangan</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                            <div class="neu-flat p-5">
+                                <div class="flex items-center gap-3 mb-4 text-[var(--primary-color)]">
+                                    <div class="w-10 h-10 rounded-full bg-[var(--primary-color)]/10 flex items-center justify-center">
+                                        <i class="fa-solid fa-wallet"></i>
+                                    </div>
+                                    <h3 class="font-bold">Wallet Pribadi</h3>
+                                </div>
+                                <h2 class="text-2xl font-bold mb-4 text-textMain" id="total-pribadi">Rp 0</h2>
+                                <div class="space-y-2 max-h-40 overflow-y-auto pr-1" id="list-pribadi"></div>
+                            </div>
+                            <div class="neu-flat p-5">
+                                <div class="flex items-center gap-3 mb-4 text-blue-500">
+                                    <div class="w-10 h-10 rounded-full bg-blue-500/10 flex items-center justify-center">
+                                        <i class="fa-solid fa-shop"></i>
+                                    </div>
+                                    <h3 class="font-bold">Wallet Bisnis</h3>
+                                </div>
+                                <h2 class="text-2xl font-bold mb-4 text-textMain" id="total-bisnis">Rp 0</h2>
+                                <div class="space-y-2 max-h-40 overflow-y-auto pr-1" id="list-bisnis"></div>
+                            </div>
+                            <div class="neu-flat p-5">
+                                <div class="flex items-center gap-3 mb-4 text-emerald-500">
+                                    <div class="w-10 h-10 rounded-full bg-emerald-500/10 flex items-center justify-center">
+                                        <i class="fa-solid fa-piggy-bank"></i>
+                                    </div>
+                                    <h3 class="font-bold">Wallet Tabungan</h3>
+                                </div>
+                                <h2 class="text-2xl font-bold mb-4 text-textMain" id="total-tabungan">Rp 0</h2>
+                                <div class="space-y-2 max-h-40 overflow-y-auto pr-1" id="list-tabungan"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="glass p-6">
+                        <div class="flex justify-between items-center mb-6">
+                            <h3 class="font-semibold text-textMain">Recent Transactions</h3>
+                            <button onclick="app.navigate('reports')" class="text-sm text-[var(--primary-color)] font-medium hover:underline">View All</button>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-sm text-left">
+                                <thead class="text-xs text-textMuted uppercase border-b border-[var(--border-light)]">
+                                    <tr>
+                                        <th class="px-4 py-3">Description</th>
+                                        <th class="px-4 py-3">Category</th>
+                                        <th class="px-4 py-3">Wallet</th>
+                                        <th class="px-4 py-3">Date</th>
+                                        <th class="px-4 py-3 text-right">Amount</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="dash-transactions">
+                                    <!-- Injected via JS -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- RIWAYAT TRANSAKSI VIEW -->
+                <div id="view-history" class="view-section hidden fade-in w-full">
+                    <div class="flex justify-between items-center mb-8">
+                        <div>
+                            <p class="text-[10px] font-bold text-textMuted uppercase tracking-wider mb-1">Pencatatan</p>
+                            <h1 class="text-2xl md:text-3xl font-bold text-textMain">Riwayat Transaksi</h1>
+                        </div>
+                        <button onclick="app.exportCSV()" class="neu-flat px-4 py-2.5 flex items-center gap-2 text-sm font-bold hover:text-green-600 transition bg-[var(--surface-color)] shadow-[0_4px_10px_var(--glass-shadow)] text-green-500">
+                            <i class="fa-solid fa-file-csv text-lg"></i> Ekspor CSV
+                        </button>
+                    </div>
+
+                    <div class="glass p-4 mb-6 flex flex-col md:flex-row gap-4 z-10 relative">
+                        <div class="flex-1 relative">
+                            <i class="fa-solid fa-search absolute left-4 top-1/2 -translate-y-1/2 text-textMuted"></i>
+                            <input type="text" id="history-search" placeholder="Cari catatan..." class="w-full pl-10 pr-4 py-2.5 neu-pressed rounded-xl bg-[var(--surface-color)] outline-none text-sm focus:ring-1 ring-[var(--primary-color)] transition text-textMain" onkeyup="app.filterHistory()">
+                        </div>
+                        <select id="history-type" class="neu-pressed px-4 py-2.5 rounded-xl bg-[var(--surface-color)] outline-none text-sm md:min-w-[150px] cursor-pointer text-textMain transition" onchange="app.filterHistory()">
+                            <option value="all">Semua Tipe</option>
+                            <option value="income">Pemasukan</option>
+                            <option value="expense">Pengeluaran</option>
+                        </select>
+                        <select id="history-period" class="neu-pressed px-4 py-2.5 rounded-xl bg-[var(--surface-color)] outline-none text-sm md:min-w-[150px] cursor-pointer text-textMain transition" onchange="app.toggleCustomDate()">
+                            <option value="all">Semua Waktu</option>
+                            <option value="this_month">Bulan Ini</option>
+                            <option value="this_year">Tahun Ini</option>
+                            <option value="custom">Pilih Tanggal...</option>
+                        </select>
+                    </div>
+
+                    <div id="custom-date-range" class="glass p-4 mb-6 flex-col md:flex-row gap-4 items-center hidden fade-in">
+                        <span class="text-sm font-medium text-textMuted w-full md:w-auto">Periode:</span>
+                        <input type="date" id="date-start" class="flex-1 w-full md:w-auto neu-pressed px-4 py-2 rounded-xl bg-[var(--surface-color)] outline-none text-sm text-textMain" onchange="app.filterHistory()">
+                        <span class="text-sm font-medium text-textMuted hidden md:block">-</span>
+                        <input type="date" id="date-end" class="flex-1 w-full md:w-auto neu-pressed px-4 py-2 rounded-xl bg-[var(--surface-color)] outline-none text-sm text-textMain" onchange="app.filterHistory()">
+                    </div>
+
+                    <div class="neu-flat p-6 bg-[var(--glass-bg)]">
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-sm text-left">
+                                <thead class="text-[11px] text-textMuted uppercase font-bold border-b border-[var(--border-light)] tracking-wider">
+                                    <tr>
+                                        <th class="px-4 py-4 whitespace-nowrap">Tanggal</th>
+                                        <th class="px-4 py-4 whitespace-nowrap">Kategori</th>
+                                        <th class="px-4 py-4 whitespace-nowrap">Catatan</th>
+                                        <th class="px-4 py-4 text-right whitespace-nowrap">Nominal</th>
+                                        <th class="px-4 py-4 whitespace-nowrap">Dompet</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="history-transactions">
+                                    <!-- Injected via JS -->
+                                </tbody>
+                            </table>
+                            
+                            <div id="history-empty" class="hidden flex-col items-center justify-center py-10 text-textMuted">
+                                <i class="fa-solid fa-folder-open text-4xl mb-3 opacity-50"></i>
+                                <p class="text-sm font-medium">Tidak ada transaksi ditemukan.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ANALISIS PENGELUARAN VIEW -->
+                <div id="view-analysis" class="view-section hidden fade-in w-full">
+                    <div class="flex justify-between items-center mb-8">
+                        <div>
+                            <p class="text-[10px] font-bold text-textMuted uppercase tracking-wider mb-1">Evaluasi</p>
+                            <h1 class="text-2xl md:text-3xl font-bold text-textMain">Analisis Pengeluaran</h1>
+                        </div>
+                        <div class="neu-flat px-4 py-2.5 flex items-center gap-2 text-sm font-bold bg-[var(--surface-color)] text-[var(--primary-color)] shadow-[0_4px_10px_var(--glass-shadow)]">
+                            <i class="fa-solid fa-bullseye text-lg"></i> Budgeting Workspace
+                        </div>
+                    </div>
+
+                    <!-- Highlight & Ringkasan -->
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+                        <!-- Card Paling Boros -->
+                        <div class="neu-flat p-6 relative overflow-hidden bg-gradient-to-br from-red-50/80 to-orange-100/30 dark:from-red-950/20 dark:to-orange-950/10 border-red-200/50">
+                            <div class="absolute -right-6 -top-6 w-24 h-24 bg-red-500 opacity-10 rounded-full blur-xl"></div>
+                            <p class="text-xs font-bold text-red-500 uppercase tracking-wider mb-1"><i class="fa-solid fa-triangle-exclamation mr-1 animate-pulse"></i> Pengeluaran Terbesar</p>
+                            <h3 class="text-xl font-bold text-textMain" id="worst-category-name">Loading...</h3>
+                            <h2 class="text-3xl font-black text-red-500 mt-2" id="worst-category-cost">Rp 0</h2>
+                            <p class="text-xs text-textMuted mt-2" id="worst-category-pct">Menyerap 0% dari seluruh anggaran bulan ini.</p>
+                        </div>
+
+                        <!-- Card Perbandingan Global -->
+                        <div class="neu-flat p-6 bg-gradient-to-br from-[var(--surface-color)] to-[var(--bg-color)]">
+                            <p class="text-xs font-bold text-[var(--primary-color)] uppercase tracking-wider mb-1">Status Budget Global</p>
+                            <div class="flex justify-between items-end mt-2">
+                                <div>
+                                    <span class="text-xs text-textMuted">Total Terpakai</span>
+                                    <h3 class="text-2xl font-bold text-textMain" id="total-spent-analysis">Rp 0</h3>
+                                </div>
+                                <div class="text-right">
+                                    <span class="text-xs text-textMuted">Dari Budget</span>
+                                    <h3 class="text-lg font-bold text-textMuted" id="total-budget-analysis">Rp 0</h3>
+                                </div>
+                            </div>
+                            <!-- Global Progress -->
+                            <div class="w-full h-2.5 bg-black/10 dark:bg-white/5 rounded-full overflow-hidden mt-4">
+                                <div id="global-budget-progress-bar" class="h-full bg-gradient-to-r from-teal-400 to-[var(--primary-color)] rounded-full transition-all duration-1000" style="width: 0%"></div>
+                            </div>
+                            <div class="flex justify-between text-[10px] text-textMuted font-bold mt-1">
+                                <span id="global-budget-pct">0% Terpakai</span>
+                                <span id="global-budget-status">Sisa Aman</span>
+                            </div>
+                        </div>
+
+                        <!-- Card Insight Ringkas -->
+                        <div class="glass p-6 flex flex-col justify-between">
+                            <div>
+                                <h4 class="text-xs font-bold text-textMain uppercase mb-1">Kesehatan Arus Kas</h4>
+                                <div class="flex items-center gap-2 mt-2">
+                                    <div class="w-8 h-8 rounded-full flex items-center justify-center text-green-500 bg-green-500/10" id="cashflow-status-icon">
+                                        <i class="fa-solid fa-circle-check"></i>
+                                    </div>
+                                    <span class="font-bold text-sm text-textMain" id="cashflow-status-text">Mengevaluasi...</span>
+                                </div>
+                            </div>
+                            <p class="text-xs text-textMuted mt-3 leading-relaxed" id="cashflow-status-desc">Perhitungan arus kas bersih berjalan secara otomatis berdasarkan transaksi bulanan Anda.</p>
+                        </div>
+                    </div>
+
+                    <!-- Chart & Progress List Workspace -->
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+                        <!-- Chart Circle (Doughnut) -->
+                        <div class="glass p-6 flex flex-col justify-between">
+                            <div>
+                                <h3 class="font-bold text-textMain mb-1">Proporsi Kategori Pengeluaran</h3>
+                                <p class="text-xs text-textMuted mb-6">Persentase kontribusi setiap kategori terhadap total pengeluaran.</p>
+                            </div>
+                            <div class="w-full h-64 relative flex items-center justify-center">
+                                <canvas id="analysisCircleChart"></canvas>
+                            </div>
+                        </div>
+
+                        <!-- Progress Breakdown Kategori vs Budget -->
+                        <div class="neu-flat p-6">
+                            <h3 class="font-bold text-textMain mb-1">Budget vs Pengeluaran Aktual</h3>
+                            <p class="text-xs text-textMuted mb-6">Status kuota pengeluaran bulanan berdasarkan batasan anggaran Anda.</p>
+                            
+                            <div class="space-y-6" id="analysis-budget-list">
+                                <!-- Dynamic progress rows injected here via JS -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- AI-Driven Insights Workspace -->
+                    <div class="neu-flat p-6 bg-gradient-to-r from-[var(--surface-color)] to-white/40 dark:to-white/5 border-[var(--primary-color)]/20 relative overflow-hidden">
+                        <div class="absolute -right-16 -bottom-16 w-48 h-48 bg-[var(--primary-color)] opacity-5 rounded-full blur-3xl"></div>
+                        <div class="flex items-start gap-4">
+                            <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-[var(--primary-color)] to-blue-500 text-white flex items-center justify-center text-xl shadow-lg shrink-0">
+                                <i class="fa-solid fa-brain"></i>
+                            </div>
+                            <div class="flex-1">
+                                <h3 class="text-lg font-bold text-textMain flex items-center gap-2">
+                                    Financial Insight & Saran Cerdas
+                                    <span class="px-2 py-0.5 rounded text-[10px] bg-[var(--primary-color)]/10 text-[var(--primary-color)] uppercase font-bold tracking-wider">AI Powered</span>
+                                </h3>
+                                <div class="text-xs text-textMuted mt-1" id="analysis-last-updated">Diperbarui saat ini</div>
+                                
+                                <div class="mt-4 space-y-3 text-sm text-textMain leading-relaxed" id="analysis-insights-container">
+                                    <!-- Dynamic text and items injected here -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- WALLET CHAT VIEW -->
+                <div id="view-chat" class="view-section hidden h-full flex flex-col relative fade-in w-full">
+                    <div class="glass p-4 mb-4 flex items-center justify-between z-10 shrink-0">
+                        <div class="flex items-center gap-3">
+                            <div class="w-12 h-12 rounded-full neu-flat flex items-center justify-center text-green-500 bg-[var(--surface-color)] text-2xl relative">
+                                <i class="fa-brands fa-whatsapp"></i>
+                                <span class="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-[var(--surface-color)] rounded-full"></span>
+                            </div>
+                            <div>
+                                <h2 class="font-bold text-textMain">WhatsApp Assistant</h2>
+                                <p class="text-xs text-green-500 font-medium">Online</p>
+                            </div>
+                        </div>
+                        <button class="w-10 h-10 rounded-full neu-flat text-textMuted hover:text-[var(--primary-color)] bg-[var(--surface-color)]"><i class="fa-solid fa-ellipsis-vertical"></i></button>
+                    </div>
+
+                    <div class="flex-1 overflow-y-auto p-2 space-y-4 pb-32" id="chat-messages">
+                        <div class="flex justify-start">
+                            <div class="neu-flat p-4 max-w-[80%] md:max-w-[60%] rounded-tl-none text-sm relative">
+                                Halo! 👋 Ketik transaksi kamu seperti ngirim chat WhatsApp. <br><br>
+                                Contoh:<br>
+                                <span class="text-green-500 font-mono font-medium">gaji bulan ini 5000k bca</span><br>
+                                <span class="text-red-500 font-mono font-medium">makan siang 25rb cash</span><br>
+                                <span class="text-red-500 font-mono font-medium">bayar listrik 350k dana</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="absolute bottom-0 left-0 right-0 glass p-2 md:p-4 z-20 flex flex-col gap-2">
+                        <div class="flex gap-2 overflow-x-auto pb-2 scrollbar-hide text-xs" id="chat-suggestions">
+                            <button onclick="app.insertChat('makan 25rb')" class="px-3 py-2 rounded-full neu-flat hover:text-[var(--primary-color)] transition whitespace-nowrap bg-[var(--surface-color)] font-medium">🍕 makan 25rb</button>
+                            <button onclick="app.insertChat('bensin 50rb')" class="px-3 py-2 rounded-full neu-flat hover:text-[var(--primary-color)] transition whitespace-nowrap bg-[var(--surface-color)] font-medium">⛽ bensin 50rb</button>
+                            <button onclick="app.insertChat('jual barang 100k')" class="px-3 py-2 rounded-full neu-flat hover:text-[var(--primary-color)] transition whitespace-nowrap bg-[var(--surface-color)] font-medium">💰 jual barang 100k</button>
+                        </div>
+                        <form id="chat-form" onsubmit="app.handleChatSubmit(event)" class="flex gap-2 w-full">
+                            <input type="text" id="chat-input" placeholder="Ketik transaksi..." class="flex-1 neu-pressed px-4 py-3 rounded-xl bg-[var(--surface-color)] outline-none focus:ring-2 ring-[var(--primary-color)] text-sm font-medium text-[var(--text-main)]" autocomplete="off">
+                            <button type="submit" class="w-12 h-12 rounded-xl bg-green-500 text-white flex items-center justify-center hover:opacity-90 transition shrink-0 shadow-[0_4px_15px_rgba(34,197,94,0.4)] text-xl">
+                                <i class="fa-solid fa-paper-plane"></i>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- REPORTS VIEW -->
+                <div id="view-reports" class="view-section hidden fade-in w-full">
+                    <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
+                        <div>
+                            <h1 class="text-2xl md:text-3xl font-bold text-textMain">Analytics & Reports</h1>
+                            <p class="text-textMuted text-sm mt-1">Deep dive into your financial health.</p>
+                        </div>
+                        <div class="flex gap-2 w-full md:w-auto">
+                            <button class="flex-1 md:flex-none px-4 py-2 rounded-lg neu-flat text-sm font-medium hover:text-[var(--primary-color)] transition">
+                                <i class="fa-regular fa-calendar mr-2"></i> This Month
+                            </button>
+                            <button class="flex-1 md:flex-none px-4 py-2 rounded-lg bg-[var(--primary-color)] text-white text-sm font-medium hover:opacity-90 transition shadow-[0_0_10px_var(--glow-color)]" onclick="app.exportReport()">
+                                <i class="fa-solid fa-download mr-2"></i> Export
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                        <div class="glass p-6">
+                            <h3 class="font-semibold mb-4 text-textMain">Income vs Expense</h3>
+                            <div class="w-full h-64 relative flex items-center justify-center">
+                                <canvas id="incomeExpenseChart"></canvas>
+                            </div>
+                        </div>
+                        <div class="glass p-6">
+                            <h3 class="font-semibold mb-4 text-textMain">Expense by Category</h3>
+                            <div class="w-full h-64 relative flex items-center justify-center">
+                                <canvas id="categoryChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- WALLET DEBT VIEW -->
+                <div id="view-debt" class="view-section hidden fade-in w-full">
+                    <div class="flex justify-between items-center mb-8">
+                        <div>
+                            <h1 class="text-2xl md:text-3xl font-bold mb-2 text-textMain">Catatan Hutang & Piutang</h1>
+                            <p class="text-textMuted text-sm">Kelola daftar hutang (yang harus dibayar) dan piutang (uang masuk).</p>
+                        </div>
+                        <button class="px-4 py-2 rounded-lg bg-[var(--primary-color)] text-white text-sm font-medium hover:opacity-90 transition shadow-[0_0_10px_var(--glow-color)] hidden md:block">
+                            <i class="fa-solid fa-plus mr-2"></i> Tambah Catatan
+                        </button>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="debt-list"></div>
+                </div>
+
+                <!-- TUTORIAL VIEW -->
+                <div id="view-tutorial" class="view-section hidden fade-in w-full">
+                    <h1 class="text-2xl md:text-3xl font-bold mb-2 text-textMain">Tutorial & Panduan</h1>
+                    <p class="text-textMuted text-sm mb-8">Pelajari cara memaksimalkan fitur iMersWALLET.</p>
+                    <div class="glass p-10 flex flex-col items-center justify-center text-center rounded-2xl min-h-[400px]">
+                        <div class="w-20 h-20 rounded-full neu-flat flex items-center justify-center text-[var(--primary-color)] text-3xl mb-4">
+                            <i class="fa-solid fa-book-open"></i>
+                        </div>
+                        <h3 class="text-lg font-bold mb-2 text-textMain">Pusat Bantuan / Tutorial</h3>
+                        <p class="text-textMuted text-sm max-w-sm">Nantinya Anda bisa menyematkan Link GDrive, Video YouTube, atau Artikel HTML kustom di halaman ini.</p>
+                    </div>
+                </div>
+
+                <!-- USERS & ACCESS VIEW -->
+                <div id="view-users" class="view-section hidden fade-in w-full">
+                    <h1 class="text-2xl md:text-3xl font-bold mb-2 text-textMain">Users & Access</h1>
+                    <p class="text-textMuted text-sm mb-8">Kelola tim, admin, dan hak akses dashboard.</p>
+                    <div class="glass p-10 flex flex-col items-center justify-center text-center rounded-2xl min-h-[400px]">
+                        <div class="w-20 h-20 rounded-full neu-flat flex items-center justify-center text-[var(--primary-color)] text-3xl mb-4">
+                            <i class="fa-solid fa-users"></i>
+                        </div>
+                        <h3 class="text-lg font-bold mb-2 text-textMain">Manajemen Pengguna</h3>
+                        <p class="text-textMuted text-sm max-w-sm">Fitur manajemen akses tim/karyawan akan segera hadir.</p>
+                    </div>
+                </div>
+
+                <!-- BOT WA & PENGATURAN VIEW -->
+                <div id="view-settings" class="view-section hidden fade-in w-full">
+                    <h1 class="text-2xl md:text-3xl font-bold mb-2 text-textMain">Bot WA & Pengaturan</h1>
+                    <p class="text-textMuted text-sm mb-8">Konfigurasi sistem Bot WhatsApp, API, Profil, dan Tema Tampilan.</p>
+
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+                        <div class="glass p-6">
+                            <h3 class="font-semibold mb-4 text-textMain"><i class="fa-solid fa-wand-magic-sparkles mr-2 text-[var(--primary-color)]"></i> Premium Presets</h3>
+                            <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
+                                <button onclick="app.setTheme('soft')" class="neu-flat p-4 flex flex-col items-center gap-2 hover:border hover:border-[#00a8cc] transition bg-[var(--surface-color)]">
+                                    <div class="w-8 h-8 rounded-full bg-[#00a8cc] shadow-[0_0_10px_rgba(0,168,204,0.5)]"></div>
+                                    <span class="text-xs font-bold text-textMain">Soft Light</span>
+                                </button>
+                                <button onclick="app.setTheme('emerald')" class="neu-flat p-4 flex flex-col items-center gap-2 hover:border hover:border-[#10b981] transition bg-gray-900 !text-white">
+                                    <div class="w-8 h-8 rounded-full bg-[#10b981] shadow-[0_0_10px_rgba(16,185,129,0.5)]"></div>
+                                    <span class="text-xs font-medium">Dark Emerald</span>
+                                </button>
+                                <button onclick="app.setTheme('purple')" class="neu-flat p-4 flex flex-col items-center gap-2 hover:border hover:border-[#8b5cf6] transition bg-[#13111C] !text-white">
+                                    <div class="w-8 h-8 rounded-full bg-[#8b5cf6] shadow-[0_0_10px_rgba(139,92,246,0.5)]"></div>
+                                    <span class="text-xs font-medium">Royal Purple</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="neu-flat p-6">
+                            <h3 class="font-semibold mb-4 text-textMain"><i class="fa-solid fa-sliders mr-2 text-[var(--primary-color)]"></i> Fine Tuning</h3>
+                            <div class="space-y-4">
+                                <div class="flex items-center justify-between glass p-3">
+                                    <span class="text-sm">Primary Accent</span>
+                                    <input type="color" id="color-primary" onchange="app.customColor('primary', this.value)" class="w-10 h-10 rounded cursor-pointer bg-transparent border-none">
+                                </div>
+                                <div class="flex items-center justify-between glass p-3">
+                                    <span class="text-sm">Background</span>
+                                    <input type="color" id="color-bg" onchange="app.customColor('bg', this.value)" class="w-10 h-10 rounded cursor-pointer bg-transparent border-none">
+                                </div>
+                                <div class="flex items-center justify-between glass p-3">
+                                    <span class="text-sm">Surface Cards</span>
+                                    <input type="color" id="color-surface" onchange="app.customColor('surface', this.value)" class="w-10 h-10 rounded cursor-pointer bg-transparent border-none">
+                                </div>
+                            </div>
+                            <div class="mt-6 p-4 rounded-xl border border-[var(--primary-color)] bg-[var(--glow-color)] flex items-center gap-4">
+                                <i class="fa-solid fa-info-circle text-[var(--primary-color)] text-xl"></i>
+                                <p class="text-xs text-textMuted">Changes are saved automatically to your device via localStorage and instantly applied to charts.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            
+            </div> <!-- End Global Wrapper -->
+        </main>
+    </div>
+
+    <script>
+        // --- APP STATE & MOCK DATA ---
+        const INITIAL_WALLETS = [
+            { id: 'w1', name: 'Cash', balance: 1250000, icon: 'fa-money-bill-wave', color: 'text-green-500', group: 'pribadi' },
+            { id: 'w2', name: 'BCA Pribadi', balance: 5500000, icon: 'fa-building-columns', color: 'text-blue-500', group: 'pribadi' },
+            { id: 'w3', name: 'Mandiri Bisnis', balance: 12500000, icon: 'fa-shop', color: 'text-indigo-500', group: 'bisnis' },
+            { id: 'w4', name: 'OVO Bisnis', balance: 850000, icon: 'fa-mobile-screen', color: 'text-purple-500', group: 'bisnis' },
+            { id: 'w5', name: 'Bibit Reksadana', balance: 10000000, icon: 'fa-seedling', color: 'text-emerald-500', group: 'tabungan' }
+        ];
+
+        const INITIAL_TRANSACTIONS = [
+            { id: 'T1', date: new Date().toISOString(), desc: 'Gaji Bulanan', category: 'Salary', wallet: 'BCA', type: 'income', amount: 8000000 },
+            { id: 'T2', date: new Date(Date.now() - 86400000).toISOString(), desc: 'Makan Siang', category: 'Food', wallet: 'Cash', type: 'expense', amount: 35000 },
+            { id: 'T3', date: new Date(Date.now() - 172800000).toISOString(), desc: 'Bayar Listrik', category: 'Bills', wallet: 'BCA', type: 'expense', amount: 350000 },
+            { id: 'T4', date: new Date(Date.now() - 259200000).toISOString(), desc: 'Jual Barang', category: 'Business', wallet: 'GoPay', type: 'income', amount: 150000 },
+            { id: 'T5', date: new Date(Date.now() - 345600000).toISOString(), desc: 'Bensin Motor', category: 'Transport', wallet: 'Cash', type: 'expense', amount: 25000 },
+            { id: 'T6', date: new Date(Date.now() - 432000000).toISOString(), desc: 'Belanja Bahan Baku', category: 'Business', wallet: 'Mandiri Bisnis', type: 'expense', amount: 1200000 },
+            { id: 'T7', date: new Date(Date.now() - 518400000).toISOString(), desc: 'Traktir Tim Reseller', category: 'Food', wallet: 'Cash', type: 'expense', amount: 650000 }
+        ];
+
+        const THEMES = {
+            soft: { bg: '#e6eef5', surface: '#e6eef5', primary: '#00a8cc', text: '#2b3648', textMuted: '#64748b', border: 'rgba(255,255,255,0.6)', borderLight: 'rgba(0,0,0,0.05)', hoverBg: 'rgba(255,255,255,0.5)', neuLight: '#ffffff', neuDark: '#b8c9db', glow: 'rgba(0,168,204,0.3)', glassBg: 'rgba(255,255,255,0.4)', glassShadow: 'rgba(184,201,219,0.4)', navActiveBg: 'rgba(255,255,255,0.6)' },
+            emerald: { bg: '#13151a', surface: '#181b21', primary: '#10b981', text: '#f3f4f6', textMuted: '#9ca3af', border: 'rgba(255,255,255,0.03)', borderLight: 'rgba(255,255,255,0.02)', hoverBg: 'rgba(255,255,255,0.03)', neuLight: 'rgba(255,255,255,0.04)', neuDark: 'rgba(0,0,0,0.8)', glow: 'rgba(16,185,129,0.2)', glassBg: 'rgba(24,27,33,0.6)', glassShadow: 'rgba(0,0,0,0.5)', navActiveBg: 'rgba(255,255,255,0.03)' },
+            purple: { bg: '#171520', surface: '#1d1a27', primary: '#8b5cf6', text: '#f3f4f6', textMuted: '#a78bfa', border: 'rgba(255,255,255,0.03)', borderLight: 'rgba(255,255,255,0.02)', hoverBg: 'rgba(255,255,255,0.03)', neuLight: 'rgba(255,255,255,0.04)', neuDark: 'rgba(0,0,0,0.8)', glow: 'rgba(139,92,246,0.2)', glassBg: 'rgba(29,26,39,0.6)', glassShadow: 'rgba(0,0,0,0.5)', navActiveBg: 'rgba(255,255,255,0.03)' }
+        };
+        
+        const INITIAL_DEBTS = [
+            { id: 'd1', name: 'Budi', type: 'payable', total: 500000, paid: 300000, date: new Date().toISOString() },
+            { id: 'd2', name: 'Supplier Kopi', type: 'payable', total: 1200000, paid: 400000, date: new Date().toISOString() },
+            { id: 'd3', name: 'Andi (Pinjam Uang)', type: 'receivable', total: 300000, paid: 0, date: new Date().toISOString() }
+        ];
+
+        // Anggaran bulanan bawaan per kategori
+        const INITIAL_BUDGETS = {
+            'Food': 1200000,
+            'Bills': 1000000,
+            'Transport': 500000,
+            'Business': 3000000,
+            'Other': 800000
+        };
+
+        const state = {
+            wallets: JSON.parse(localStorage.getItem('imers_wallets')) || INITIAL_WALLETS,
+            transactions: JSON.parse(localStorage.getItem('imers_transactions')) || INITIAL_TRANSACTIONS,
+            debts: JSON.parse(localStorage.getItem('imers_debts')) || INITIAL_DEBTS,
+            budgets: JSON.parse(localStorage.getItem('imers_budgets')) || INITIAL_BUDGETS,
+            theme: localStorage.getItem('imers_theme') || 'soft',
+            charts: {}
+        };
+
+        const app = {
+            currentPin: '',
+            
+            init() {
+                this.setTheme(state.theme, true);
+                this.updateHeader();
+                
+                if(localStorage.getItem('imers_auth') === 'true') {
+                    document.getElementById('view-auth').classList.add('hidden');
+                    document.getElementById('app-container').classList.remove('hidden');
+                    this.navigate('dashboard');
+                } else {
+                    document.getElementById('view-auth').classList.remove('hidden');
+                }
+
+                window.addEventListener('keydown', (e) => {
+                    if(!document.getElementById('view-auth').classList.contains('hidden')) {
+                        if(e.key >= '0' && e.key <= '9') this.inputPin(e.key);
+                        if(e.key === 'Backspace') this.deletePin();
+                    }
+                });
+            },
+
+            inputPin(num) {
+                if (this.currentPin.length < 6) {
+                    this.currentPin += num;
+                    this.updatePinDisplay();
+                }
+                
+                if (this.currentPin.length === 6) {
+                    setTimeout(() => this.login(), 300);
+                }
+            },
+
+            deletePin() {
+                if (this.currentPin.length > 0) {
+                    this.currentPin = this.currentPin.slice(0, -1);
+                    this.updatePinDisplay();
+                }
+            },
+
+            updatePinDisplay() {
+                const indicators = document.getElementById('pin-indicators').children;
+                for (let i = 0; i < 6; i++) {
+                    if (i < this.currentPin.length) {
+                        indicators[i].classList.add('bg-[var(--primary-color)]', 'shadow-[0_0_10px_var(--glow-color)]');
+                    } else {
+                        indicators[i].classList.remove('bg-[var(--primary-color)]', 'shadow-[0_0_10px_var(--glow-color)]');
+                    }
+                }
+            },
+
+            login() {
+                localStorage.setItem('imers_auth', 'true');
+                document.getElementById('view-auth').classList.add('hidden');
+                document.getElementById('app-container').classList.remove('hidden');
+                document.getElementById('app-container').classList.add('fade-in');
+                this.currentPin = '';
+                this.updatePinDisplay();
+                this.navigate('dashboard');
+            },
+
+            logout() {
+                localStorage.removeItem('imers_auth');
+                document.getElementById('app-container').classList.add('hidden');
+                document.getElementById('view-auth').classList.remove('hidden');
+                this.currentPin = '';
+                this.updatePinDisplay();
+            },
+
+            navigate(view) {
+                document.querySelectorAll('.view-section').forEach(el => el.classList.add('hidden'));
+                document.getElementById(`view-${view}`).classList.remove('hidden');
+                
+                document.querySelectorAll('.nav-btn').forEach(el => el.classList.remove('nav-active'));
+                if(document.getElementById(`nav-${view}`)) {
+                    document.getElementById(`nav-${view}`).classList.add('nav-active');
+                }
+
+                if(view === 'dashboard') this.renderDashboard();
+                if(view === 'history') this.renderHistory();
+                if(view === 'analysis') this.renderAnalysis();
+                if(view === 'reports') this.renderReports();
+                if(view === 'debt') this.renderDebt();
+                if(view === 'chat' && document.getElementById('chat-input')) {
+                    setTimeout(() => document.getElementById('chat-input').focus(), 100);
+                }
+            },
+
+            formatCur(amount) {
+                return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(amount);
+            },
+            
+            formatDate(isoString) {
+                const d = new Date(isoString);
+                return `${d.getDate()} ${d.toLocaleString('default', { month: 'short' })} ${d.getFullYear()}`;
+            },
+
+            updateHeader() {
+                const hour = new Date().getHours();
+                let greeting = '';
+                let icon = '';
+                let quote = '';
+                
+                if (hour >= 4 && hour < 11) {
+                    greeting = 'Selamat Pagi'; 
+                    icon = '<i class="fa-solid fa-sun text-yellow-500 ml-2"></i>';
+                    quote = '"Pagi yang cerah untuk mulai merencanakan keuangan yang lebih baik. Yuk, semangat!"';
+                } else if (hour >= 11 && hour < 15) {
+                    greeting = 'Selamat Siang'; 
+                    icon = '<i class="fa-solid fa-cloud-sun text-blue-400 ml-2"></i>';
+                    quote = '"Tetap produktif dan jangan lupa kontrol pengeluaran siang ini."';
+                } else if (hour >= 15 && hour < 18) {
+                    greeting = 'Selamat Sore'; 
+                    icon = '<i class="fa-solid fa-sun text-orange-500 ml-2"></i>';
+                    quote = '"Evaluasi pengeluaran hari ini, siapkan fondasi untuk esok hari."';
+                } else {
+                    greeting = 'Selamat Malam'; 
+                    icon = '<i class="fa-solid fa-moon text-indigo-400 ml-2"></i>';
+                    quote = '"Waktunya istirahat, biarkan sistem yang bekerja menjaga keuanganmu."';
+                }
+                
+                const greetEl = document.getElementById('welcome-greeting');
+                const quoteEl = document.getElementById('quote-text');
+                
+                if(greetEl) greetEl.innerHTML = `${greeting}, Bosku! ${icon}`;
+                if(quoteEl) quoteEl.innerText = quote;
+            },
+
+            renderDashboard() {
+                let totalBal = 0;
+                let monthInc = 0;
+                let monthExp = 0;
+                let totPribadi = 0, totBisnis = 0, totTabungan = 0;
+                let htmlPribadi = '', htmlBisnis = '', htmlTabungan = '';
+
+                const currentMonth = new Date().getMonth();
+
+                state.wallets.forEach(w => {
+                    totalBal += w.balance;
+                    const itemHtml = `
+                    <div class="flex justify-between items-center p-2 rounded-lg hover:bg-[var(--hover-bg)] transition cursor-pointer">
+                        <div class="flex items-center gap-2">
+                            <div class="w-8 h-8 rounded-full neu-pressed flex items-center justify-center ${w.color} bg-[var(--surface-color)] text-xs">
+                                <i class="fa-solid ${w.icon}"></i>
+                            </div>
+                            <p class="text-xs font-bold text-textMain">${w.name}</p>
+                        </div>
+                        <p class="font-bold text-xs text-textMain">${this.formatCur(w.balance)}</p>
+                    </div>`;
+
+                    if(w.group === 'pribadi') { totPribadi += w.balance; htmlPribadi += itemHtml; }
+                    else if(w.group === 'bisnis') { totBisnis += w.balance; htmlBisnis += itemHtml; }
+                    else if(w.group === 'tabungan') { totTabungan += w.balance; htmlTabungan += itemHtml; }
+                });
+
+                document.getElementById('dash-total-balance').innerText = this.formatCur(totalBal);
+                document.getElementById('total-pribadi').innerText = this.formatCur(totPribadi);
+                document.getElementById('list-pribadi').innerHTML = htmlPribadi || '<p class="text-xs text-textMuted p-2">Belum ada wallet.</p>';
+                document.getElementById('total-bisnis').innerText = this.formatCur(totBisnis);
+                document.getElementById('list-bisnis').innerHTML = htmlBisnis || '<p class="text-xs text-textMuted p-2">Belum ada wallet.</p>';
+                document.getElementById('total-tabungan').innerText = this.formatCur(totTabungan);
+                document.getElementById('list-tabungan').innerHTML = htmlTabungan || '<p class="text-xs text-textMuted p-2">Belum ada wallet.</p>';
+
+                const recentTxHtml = state.transactions.slice(0, 5).map(t => {
+                    const txDate = new Date(t.date);
+                    if(txDate.getMonth() === currentMonth && txDate.getFullYear() === new Date().getFullYear()) {
+                        if(t.type === 'income') monthInc += t.amount;
+                        else monthExp += t.amount;
+                    }
+                    
+                    const isInc = t.type === 'income';
+                    return `
+                    <tr class="border-b border-[var(--border-light)] hover:bg-[var(--hover-bg)] transition">
+                        <td class="px-4 py-3 font-bold text-textMain">${t.desc}</td>
+                        <td class="px-4 py-3 text-xs"><span class="px-3 py-1 rounded-full neu-flat bg-[var(--surface-color)] font-medium">${t.category}</span></td>
+                        <td class="px-4 py-3 text-xs font-semibold text-textMuted">${t.wallet}</td>
+                        <td class="px-4 py-3 text-xs text-textMuted">${this.formatDate(t.date)}</td>
+                        <td class="px-4 py-3 text-right font-bold ${isInc ? 'text-green-500' : 'text-textMain'}">
+                            ${isInc ? '+' : '-'}${this.formatCur(t.amount)}
+                        </td>
+                    </tr>`;
+                }).join('');
+                document.getElementById('dash-transactions').innerHTML = recentTxHtml;
+                
+                document.getElementById('dash-income').innerText = this.formatCur(monthInc);
+                document.getElementById('dash-expense').innerText = this.formatCur(monthExp);
+
+                this.renderCashflowChart();
+            },
+
+            renderReports() {
+                // Chart.js implementation for reports
+            },
+
+            toggleCustomDate() {
+                const period = document.getElementById('history-period').value;
+                const customDateContainer = document.getElementById('custom-date-range');
+                if (period === 'custom') {
+                    customDateContainer.classList.remove('hidden');
+                    customDateContainer.classList.add('flex');
+                } else {
+                    customDateContainer.classList.add('hidden');
+                    customDateContainer.classList.remove('flex');
+                }
+                this.filterHistory();
+            },
+
+            getFilteredTransactions() {
+                const searchTerm = (document.getElementById('history-search')?.value || '').toLowerCase();
+                const typeFilter = document.getElementById('history-type')?.value || 'all';
+                const periodFilter = document.getElementById('history-period')?.value || 'all';
+                const dateStart = document.getElementById('date-start')?.value;
+                const dateEnd = document.getElementById('date-end')?.value;
+
+                return state.transactions.filter(t => {
+                    const matchSearch = t.desc.toLowerCase().includes(searchTerm) || t.category.toLowerCase().includes(searchTerm);
+                    const matchType = typeFilter === 'all' || t.type === typeFilter;
+                    
+                    let matchPeriod = true;
+                    const tDate = new Date(t.date);
+                    const now = new Date();
+                    
+                    if (periodFilter === 'this_month') {
+                        matchPeriod = tDate.getMonth() === now.getMonth() && tDate.getFullYear() === now.getFullYear();
+                    } else if (periodFilter === 'this_year') {
+                        matchPeriod = tDate.getFullYear() === now.getFullYear();
+                    } else if (periodFilter === 'custom' && dateStart && dateEnd) {
+                        const start = new Date(dateStart);
+                        const end = new Date(dateEnd);
+                        end.setHours(23, 59, 59);
+                        matchPeriod = tDate >= start && tDate <= end;
+                    }
+
+                    return matchSearch && matchType && matchPeriod;
+                });
+            },
+
+            renderHistory() {
+                const filteredTx = this.getFilteredTransactions();
+                const tbody = document.getElementById('history-transactions');
+                const emptyState = document.getElementById('history-empty');
+
+                if (filteredTx.length === 0) {
+                    tbody.innerHTML = '';
+                    emptyState.classList.remove('hidden');
+                    emptyState.classList.add('flex');
+                    return;
+                }
+
+                emptyState.classList.add('hidden');
+                emptyState.classList.remove('flex');
+
+                const txHtml = filteredTx.map(t => {
+                    const isInc = t.type === 'income';
+                    return `
+                    <tr class="border-b border-[var(--border-light)] hover:bg-[var(--hover-bg)] transition group">
+                        <td class="px-4 py-4 text-xs font-medium whitespace-nowrap">${this.formatDate(t.date)}</td>
+                        <td class="px-4 py-4 text-xs"><span class="px-3 py-1.5 rounded neu-flat bg-[var(--surface-color)] font-medium shadow-sm">${t.category}</span></td>
+                        <td class="px-4 py-4 font-bold text-textMain">${t.desc}</td>
+                        <td class="px-4 py-4 text-right font-bold ${isInc ? 'text-green-500' : 'text-textMain'} whitespace-nowrap">
+                            ${isInc ? '+' : '-'}${this.formatCur(t.amount)}
+                        </td>
+                        <td class="px-4 py-4 text-xs font-semibold text-textMuted whitespace-nowrap">${t.wallet}</td>
+                    </tr>`;
+                }).join('');
+                
+                tbody.innerHTML = txHtml;
+            },
+
+            exportCSV() {
+                const btn = document.querySelector('button[onclick="app.exportCSV()"]');
+                const origHtml = btn.innerHTML;
+                btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i> Exporting...';
+                
+                const filteredTx = this.getFilteredTransactions();
+                
+                if(filteredTx.length === 0) {
+                    alert("Tidak ada data untuk diekspor pada periode ini.");
+                    btn.innerHTML = origHtml;
+                    return;
+                }
+
+                setTimeout(() => {
+                    let csvContent = "data:text/csv;charset=utf-8,ID,Tanggal,Kategori,Catatan,Tipe,Nominal,Dompet\n";
+                    filteredTx.forEach(t => {
+                        const dateStr = new Date(t.date).toLocaleDateString('id-ID');
+                        const safeDesc = `"${t.desc.replace(/"/g, '""')}"`; 
+                        csvContent += `${t.id},${dateStr},${t.category},${safeDesc},${t.type},${t.amount},${t.wallet}\n`;
+                    });
+
+                    const encodedUri = encodeURI(csvContent);
+                    const link = document.createElement("a");
+                    link.setAttribute("href", encodedUri);
+                    link.setAttribute("download", `iMers_Transaksi_${new Date().getTime()}.csv`);
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+
+                    btn.innerHTML = '<i class="fa-solid fa-check mr-2"></i> Berhasil';
+                    btn.classList.add('text-green-500');
+                    setTimeout(() => {
+                        btn.innerHTML = origHtml;
+                        btn.classList.remove('text-green-500');
+                    }, 2000);
+                }, 800);
+            },
+
+            // --- PENGELOLAAN EVALUASI & ANALISIS PENGELUARAN ---
+            renderAnalysis() {
+                // 1. Hitung total aktual pengeluaran bulan berjalan berdasarkan kategori
+                const now = new Date();
+                const actualExpenses = {};
+                let totalActualSpent = 0;
+                let totalIncomeThisMonth = 0;
+
+                // Inisialisasi kategori dari budget state agar konsisten
+                Object.keys(state.budgets).forEach(cat => {
+                    actualExpenses[cat] = 0;
+                });
+
+                state.transactions.forEach(t => {
+                    const tDate = new Date(t.date);
+                    // Filter untuk bulan ini
+                    if (tDate.getMonth() === now.getMonth() && tDate.getFullYear() === now.getFullYear()) {
+                        if (t.type === 'expense') {
+                            const cat = state.budgets[t.category] !== undefined ? t.category : 'Other';
+                            actualExpenses[cat] = (actualExpenses[cat] || 0) + t.amount;
+                            totalActualSpent += t.amount;
+                        } else if (t.type === 'income') {
+                            totalIncomeThisMonth += t.amount;
+                        }
+                    }
+                });
+
+                // 2. Hitung total budget bulanan yang di-set di state
+                let totalBudget = 0;
+                Object.keys(state.budgets).forEach(cat => {
+                    totalBudget += state.budgets[cat];
+                });
+
+                // Tampilkan data global ke card
+                document.getElementById('total-spent-analysis').innerText = this.formatCur(totalActualSpent);
+                document.getElementById('total-budget-analysis').innerText = this.formatCur(totalBudget);
+
+                // Hitung persentase budget global
+                const globalPct = totalBudget > 0 ? Math.min(Math.round((totalActualSpent / totalBudget) * 100), 100) : 0;
+                const progressBar = document.getElementById('global-budget-progress-bar');
+                progressBar.style.width = globalPct + '%';
+                
+                // Ubah warna bar jika over-budget
+                if (globalPct >= 100) {
+                    progressBar.className = "h-full bg-gradient-to-r from-red-500 to-rose-600 rounded-full transition-all duration-1000";
+                    document.getElementById('global-budget-status').innerText = "LIMIT OVER-BUDGET!";
+                    document.getElementById('global-budget-status').className = "text-red-500 font-extrabold";
+                } else if (globalPct > 80) {
+                    progressBar.className = "h-full bg-gradient-to-r from-orange-400 to-red-500 rounded-full transition-all duration-1000";
+                    document.getElementById('global-budget-status').innerText = "Waspada / Hampir Limit";
+                    document.getElementById('global-budget-status').className = "text-orange-500 font-bold";
+                } else {
+                    progressBar.className = "h-full bg-gradient-to-r from-teal-400 to-[var(--primary-color)] rounded-full transition-all duration-1000";
+                    document.getElementById('global-budget-status').innerText = "Sisa Aman";
+                    document.getElementById('global-budget-status').className = "text-green-500 font-bold";
+                }
+                document.getElementById('global-budget-pct').innerText = `${globalPct}% Terpakai`;
+
+                // 3. Tentukan kategori dengan pengeluaran paling boros / terbesar
+                let worstCategory = "Belum Ada";
+                let worstCost = 0;
+                Object.keys(actualExpenses).forEach(cat => {
+                    if (actualExpenses[cat] > worstCost) {
+                        worstCost = actualExpenses[cat];
+                        worstCategory = cat;
+                    }
+                });
+
+                const worstPctOfTotal = totalActualSpent > 0 ? Math.round((worstCost / totalActualSpent) * 100) : 0;
+                document.getElementById('worst-category-name').innerText = worstCategory;
+                document.getElementById('worst-category-cost').innerText = this.formatCur(worstCost);
+                document.getElementById('worst-category-pct').innerText = `Menyerap ${worstPctOfTotal}% dari seluruh pengeluaran bulan ini.`;
+
+                // 4. Hitung Arus Kas Bersih (Net Cashflow Status)
+                const netCashflow = totalIncomeThisMonth - totalActualSpent;
+                const statusIconEl = document.getElementById('cashflow-status-icon');
+                const statusTextEl = document.getElementById('cashflow-status-text');
+                const statusDescEl = document.getElementById('cashflow-status-desc');
+
+                if (netCashflow > 0) {
+                    statusIconEl.className = "w-8 h-8 rounded-full flex items-center justify-center text-green-500 bg-green-500/10";
+                    statusIconEl.innerHTML = '<i class="fa-solid fa-circle-check"></i>';
+                    statusTextEl.innerText = "Arus Kas Surplus";
+                    statusTextEl.className = "font-bold text-sm text-green-500";
+                    statusDescEl.innerText = `Sisa kas bersih bulan ini sebesar ${this.formatCur(netCashflow)} dapat dialihkan ke Wallet Tabungan Anda.`;
+                } else if (netCashflow < 0) {
+                    statusIconEl.className = "w-8 h-8 rounded-full flex items-center justify-center text-red-500 bg-red-500/10";
+                    statusIconEl.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i>';
+                    statusTextEl.innerText = "Arus Kas Defisit";
+                    statusTextEl.className = "font-bold text-sm text-red-500";
+                    statusDescEl.innerText = `Pengeluaran Anda melebihi pemasukan bulan ini sebesar ${this.formatCur(Math.abs(netCashflow))}. Harap lakukan rem darurat!`;
+                } else {
+                    statusIconEl.className = "w-8 h-8 rounded-full flex items-center justify-center text-blue-500 bg-blue-500/10";
+                    statusIconEl.innerHTML = '<i class="fa-solid fa-scale-balanced"></i>';
+                    statusTextEl.innerText = "Arus Kas Seimbang";
+                    statusTextEl.className = "font-bold text-sm text-blue-500";
+                    statusDescEl.innerText = "Seluruh pemasukan Anda habis terpakai tanpa sisa. Pertimbangkan untuk menyisihkan tabungan di awal bulan.";
+                }
+
+                // 5. Render list perbandingan budget vs pengeluaran aktual per kategori
+                const budgetListHtml = Object.keys(state.budgets).map(cat => {
+                    const actual = actualExpenses[cat] || 0;
+                    const budget = state.budgets[cat];
+                    const pct = budget > 0 ? Math.min(Math.round((actual / budget) * 100), 200) : 0;
+                    
+                    let barColor = "bg-[var(--primary-color)]";
+                    let textColor = "text-textMain";
+                    if (pct >= 100) {
+                        barColor = "bg-red-500";
+                        textColor = "text-red-500 font-bold";
+                    } else if (pct > 80) {
+                        barColor = "bg-orange-400";
+                    }
+
+                    const isOverBudget = actual > budget;
+                    const diffText = isOverBudget 
+                        ? `Over budget ${this.formatCur(actual - budget)}`
+                        : `Sisa kuota ${this.formatCur(budget - actual)}`;
+
+                    return `
+                    <div class="space-y-1">
+                        <div class="flex justify-between items-center text-xs">
+                            <span class="font-bold text-textMain">${cat}</span>
+                            <span class="${textColor}">${pct}% (${this.formatCur(actual)} / ${this.formatCur(budget)})</span>
+                        </div>
+                        <div class="w-full h-2 bg-black/5 dark:bg-white/5 rounded-full overflow-hidden">
+                            <div class="h-full ${barColor} rounded-full transition-all duration-1000" style="width: ${Math.min(pct, 100)}%"></div>
+                        </div>
+                        <div class="flex justify-between text-[10px] text-textMuted font-medium">
+                            <span>${diffText}</span>
+                        </div>
+                    </div>`;
+                }).join('');
+                document.getElementById('analysis-budget-list').innerHTML = budgetListHtml;
+
+                // 6. Generate Dynamic AI-powered Insights & Tips
+                let insightHtml = "";
+                if (totalActualSpent === 0) {
+                    insightHtml = `
+                        <p class="font-medium text-textMain">👋 Belum ada data pengeluaran tercatat untuk bulan ini.</p>
+                        <p class="text-xs text-textMuted mt-1">Silakan tambahkan data melalui tab <b>Wallet Chat</b> atau import transaksi untuk melihat analisis mendalam.</p>
+                    `;
+                } else {
+                    // Cek status kepatuhan budget
+                    let adviceList = [];
+                    
+                    // Saran berdasarkan Kategori Paling Boros
+                    if (worstCategory !== "Belum Ada") {
+                        if (worstCategory === 'Food') {
+                            adviceList.push(`🍔 Kategori <b>Food & Beverage</b> adalah pos pengeluaran terbesar Anda (${this.formatCur(worstCost)}). Pertimbangkan memasak di rumah atau batasi intensitas jajan di luar (dine-out) hingga akhir bulan ini.`);
+                        } else if (worstCategory === 'Bills') {
+                            adviceList.push(`⚡ Tagihan (<b>Bills</b>) menyedot anggaran bulanan Anda sebesar ${this.formatCur(worstCost)}. Coba lakukan audit langganan bulanan digital Anda yang kurang aktif, atau hemat penggunaan energi listrik di rumah.`);
+                        } else if (worstCategory === 'Transport') {
+                            adviceList.push(`🚗 Pos <b>Transportasi</b> adalah pengeluaran utama Anda bulan ini (${this.formatCur(worstCost)}). Cari alternatif rute perjalanan, manfaatkan promo ojek online, atau optimalkan perjalanan bersama.`);
+                        } else if (worstCategory === 'Business') {
+                            adviceList.push(`📈 Pengeluaran operasional <b>Bisnis</b> Anda menempati porsi terbesar (${this.formatCur(worstCost)}). Pastikan pengeluaran ini memiliki ROI (Return on Investment) yang jelas dan kurangi biaya overhead yang tidak perlu.`);
+                        } else {
+                            adviceList.push(`📦 Pengeluaran <b>${worstCategory}</b> merupakan pos paling boros bulan ini (${this.formatCur(worstCost)}). Lakukan filter ulang mana yang benar-benar kebutuhan utama (needs) dan mana yang sekedar keinginan (wants).`);
+                        }
+                    }
+
+                    // Saran berdasarkan status overbudget
+                    const overBudgetCategories = Object.keys(state.budgets).filter(cat => (actualExpenses[cat] || 0) > state.budgets[cat]);
+                    if (overBudgetCategories.length > 0) {
+                        adviceList.push(`🚨 Anda telah <b>melebihi batas budget</b> pada kategori: <span class="text-red-500 font-bold">${overBudgetCategories.join(', ')}</span>. Untuk kategori ini, Anda wajib menutup keran transaksi sementara waktu.`);
+                    } else {
+                        adviceList.push(`🎉 <b>Kerja bagus!</b> Seluruh kategori pengeluaran Anda masih terkendali dan berada di bawah batas pagu anggaran yang direncanakan.`);
+                    }
+
+                    // Saran berdasarkan sisa uang keseluruhan
+                    if (globalPct > 90) {
+                        adviceList.push(`⚠️ Sisa anggaran global tinggal sedikit (${100 - globalPct}%). Sebaiknya Anda menunda segala pengeluaran non-primer (lifestyle, hiburan, belanja hobi) agar kas Anda tidak mengalami defisit parah.`);
+                    }
+
+                    insightHtml = adviceList.map(adv => `
+                        <div class="flex items-start gap-3 bg-[var(--surface-color)] p-3 rounded-xl border border-[var(--border-light)] shadow-sm">
+                            <span class="text-base text-[var(--primary-color)] shrink-0"><i class="fa-solid fa-lightbulb"></i></span>
+                            <span class="text-xs text-textMain">${adv}</span>
+                        </div>
+                    `).join('');
+                }
+                document.getElementById('analysis-insights-container').innerHTML = insightHtml;
+                document.getElementById('analysis-last-updated').innerText = `Diperbarui otomatis pada: ${new Date().toLocaleTimeString('id-ID')} WIB`;
+
+                // 7. Render Circle Chart (Doughnut Chart)
+                this.renderAnalysisCircleChart(actualExpenses);
+            },
+
+            renderAnalysisCircleChart(actualExpenses) {
+                const ctx = document.getElementById('analysisCircleChart');
+                if(!ctx) return;
+                
+                // Hancurkan chart lama jika ada agar tidak bentrok
+                if(state.charts.analysisCircle) state.charts.analysisCircle.destroy();
+
+                const cTheme = this.getChartTheme();
+                Chart.defaults.color = cTheme.text;
+                Chart.defaults.font.family = "'Poppins', sans-serif";
+
+                // Filter kategori yang memiliki nilai > 0 agar chart terlihat rapi
+                const labels = [];
+                const data = [];
+                const backgroundColors = [
+                    '#ff4b5c', // Red - Food
+                    '#8b5cf6', // Purple - Bills
+                    '#0ea5e9', // Sky - Transport
+                    '#10b981', // Emerald - Business
+                    '#f59e0b', // Amber - Other
+                ];
+
+                Object.keys(actualExpenses).forEach(cat => {
+                    if (actualExpenses[cat] > 0) {
+                        labels.push(cat);
+                        data.push(actualExpenses[cat]);
+                    }
+                });
+
+                if (data.length === 0) {
+                    // Fallback jika belum ada transaksi pengeluaran
+                    labels.push('Belum Ada Pengeluaran');
+                    data.push(1);
+                    backgroundColors.push('#cbd5e1');
+                }
+
+                state.charts.analysisCircle = new Chart(ctx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            data: data,
+                            backgroundColor: backgroundColors.slice(0, labels.length),
+                            borderWidth: 2,
+                            borderColor: cTheme.grid,
+                            hoverOffset: 4
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                position: 'bottom',
+                                labels: {
+                                    usePointStyle: true,
+                                    padding: 15,
+                                    font: { size: 11, weight: '500' }
+                                }
+                            }
+                        },
+                        cutout: '65%'
+                    }
+                });
+            },
+
+            getChartTheme() {
+                const rs = getComputedStyle(document.documentElement);
+                return {
+                    primary: rs.getPropertyValue('--primary-color').trim(),
+                    text: rs.getPropertyValue('--text-muted').trim(),
+                    grid: rs.getPropertyValue('--border-color').trim(),
+                };
+            },
+
+            renderCashflowChart() {
+                const ctx = document.getElementById('cashflowChart');
+                if(!ctx) return;
+                if(state.charts.cashflow) state.charts.cashflow.destroy();
+
+                const cTheme = this.getChartTheme();
+                Chart.defaults.color = cTheme.text;
+                Chart.defaults.font.family = "'Poppins', sans-serif";
+
+                state.charts.cashflow = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+                        datasets: [{
+                            label: 'Balance Trend',
+                            data: [5000000, 4800000, 5200000, 5100000, 6500000, 6100000, 10220000],
+                            borderColor: cTheme.primary,
+                            backgroundColor: cTheme.primary + '33',
+                            borderWidth: 3,
+                            tension: 0.4,
+                            fill: true,
+                            pointBackgroundColor: cTheme.primary,
+                            pointRadius: 4,
+                            pointHoverRadius: 6
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: { legend: { display: false } },
+                        scales: {
+                            y: { grid: { color: cTheme.grid, drawBorder: false }, ticks: { callback: v => 'Rp ' + (v/1000) + 'k' } },
+                            x: { grid: { display: false, drawBorder: false } }
+                        }
+                    }
+                });
+            },
+
+            renderDebt() {
+                const html = state.debts.map(d => {
+                    const sisa = d.total - d.paid;
+                    const percent = Math.round((d.paid / d.total) * 100);
+                    const isHutang = d.type === 'payable'; 
+                    const badgeClass = isHutang ? 'bg-red-500/10 text-red-500' : 'bg-green-500/10 text-green-500';
+                    const badgeText = isHutang ? 'Hutang' : 'Piutang';
+                    
+                    return `
+                    <div class="neu-flat p-5 flex flex-col hover:-translate-y-1 transition duration-300">
+                        <div class="flex justify-between items-center mb-4 border-b border-[var(--border-light)] pb-3">
+                            <h3 class="font-bold text-lg text-textMain"><i class="fa-solid fa-handshake text-blue-500 mr-2"></i> ${d.name}</h3>
+                            <span class="text-xs font-semibold px-2 py-1 ${badgeClass} rounded-md">${badgeText}</span>
+                        </div>
+                        <div class="flex justify-between mb-2 text-sm">
+                            <span class="text-textMuted">Total ${badgeText}</span>
+                            <span class="font-bold text-textMain">${this.formatCur(d.total)}</span>
+                        </div>
+                        <div class="flex justify-between mb-2 text-sm">
+                            <span class="text-textMuted">Sudah Bayar</span>
+                            <span class="font-bold text-green-500">${this.formatCur(d.paid)}</span>
+                        </div>
+                        <div class="flex justify-between mb-4 text-sm">
+                            <span class="text-textMuted">Sisa</span>
+                            <span class="font-bold text-red-500">${this.formatCur(sisa)}</span>
+                        </div>
+                        <div class="mt-auto">
+                            <div class="flex justify-between text-xs mb-1 font-bold text-textMuted">
+                                <span>Progress</span>
+                                <span>${percent}%</span>
+                            </div>
+                            <div class="w-full h-3 bg-black/10 dark:bg-white/5 rounded-full overflow-hidden shadow-inner">
+                                <div class="h-full bg-[var(--primary-color)] rounded-full transition-all duration-1000 ease-out" style="width: ${percent}%"></div>
+                            </div>
+                        </div>
+                    </div>`;
+                }).join('');
+                document.getElementById('debt-list').innerHTML = html;
+            },
+
+            insertChat(text) {
+                document.getElementById('chat-input').value = text;
+                document.getElementById('chat-input').focus();
+            },
+
+            handleChatSubmit(e) {
+                e.preventDefault();
+                const inputEl = document.getElementById('chat-input');
+                const text = inputEl.value.trim();
+                if(!text) return;
+                this.addChatMessage(text, 'user');
+                inputEl.value = '';
+                this.showTyping();
+                setTimeout(() => { this.processTransactionText(text); }, 1000);
+            },
+
+            addChatMessage(htmlContent, sender) {
+                const container = document.getElementById('chat-messages');
+                const div = document.createElement('div');
+                div.className = `flex ${sender === 'user' ? 'justify-end' : 'justify-start'} fade-in mb-4`;
+                const boxClass = sender === 'user' 
+                    ? `bg-[var(--primary-color)] text-white p-3 rounded-2xl rounded-tr-none text-sm max-w-[80%]` 
+                    : `neu-flat p-4 max-w-[80%] rounded-tl-none text-sm border-l-2 border-[var(--primary-color)]`;
+                div.innerHTML = `<div class="${boxClass}">${htmlContent}</div>`;
+                container.appendChild(div);
+                container.scrollTop = container.scrollHeight;
+            },
+
+            showTyping() {
+                const container = document.getElementById('chat-messages');
+                const id = 'typing-' + Date.now();
+                const div = document.createElement('div');
+                div.id = id;
+                div.className = `flex justify-start fade-in mb-4`;
+                div.innerHTML = `
+                    <div class="neu-flat p-4 rounded-tl-none flex gap-1 items-center">
+                        <div class="w-2 h-2 rounded-full bg-[var(--primary-color)] animate-bounce"></div>
+                        <div class="w-2 h-2 rounded-full bg-[var(--primary-color)] animate-bounce" style="animation-delay: 0.1s"></div>
+                        <div class="w-2 h-2 rounded-full bg-[var(--primary-color)] animate-bounce" style="animation-delay: 0.2s"></div>
+                    </div>`;
+                container.appendChild(div);
+                container.scrollTop = container.scrollHeight;
+                this.currentTypingId = id;
+            },
+
+            hideTyping() {
+                if(this.currentTypingId) {
+                    const el = document.getElementById(this.currentTypingId);
+                    if(el) el.remove();
+                }
+            },
+
+            processTransactionText(text) {
+                this.hideTyping();
+                const t = text.toLowerCase();
+                let amount = 0, type = 'expense', category = 'Other', wallet = 'Cash';
+
+                const amtMatch = t.match(/(\d+)(rb|ribu|k)?/);
+                if(amtMatch) {
+                    let baseNum = parseInt(amtMatch[1]);
+                    let multiplier = amtMatch[2] ? 1000 : 1;
+                    amount = baseNum * multiplier;
+                    text = text.replace(amtMatch[0], '').trim();
+                } else {
+                    this.addChatMessage('❌ Maaf, jumlah nominalnya belum jelas. Coba sertakan angka (contoh: 50rb atau 50000).', 'bot');
+                    return;
+                }
+
+                if(t.includes('bca')) wallet = 'BCA';
+                else if(t.includes('gopay')) wallet = 'GoPay';
+                else if(t.includes('ovo')) wallet = 'OVO';
+                else if(t.includes('dana')) wallet = 'Dana';
+                
+                let desc = text.replace(/bca|gopay|ovo|dana|cash/gi, '').trim() || 'Transaction';
+
+                if(t.includes('gaji') || t.includes('jual') || t.includes('terima') || t.includes('profit')) {
+                    type = 'income';
+                    category = t.includes('gaji') ? 'Salary' : 'Business';
+                } else {
+                    if(t.includes('makan') || t.includes('minum') || t.includes('kopi')) category = 'Food';
+                    else if(t.includes('listrik') || t.includes('air') || t.includes('tagihan')) category = 'Bills';
+                    else if(t.includes('bensin') || t.includes('gojek') || t.includes('grab')) category = 'Transport';
+                }
+
+                const newTx = {
+                    id: 'T' + Math.floor(Math.random() * 10000),
+                    date: new Date().toISOString(),
+                    desc: desc.charAt(0).toUpperCase() + desc.slice(1),
+                    category, wallet, type, amount
+                };
+
+                state.transactions.unshift(newTx);
+                
+                const wIndex = state.wallets.findIndex(w => w.name.toLowerCase() === wallet.toLowerCase());
+                if(wIndex >= 0) {
+                    if(type === 'income') state.wallets[wIndex].balance += amount;
+                    else state.wallets[wIndex].balance -= amount;
+                }
+                this.saveData();
+
+                const icon = type === 'income' ? '<i class="fa-solid fa-arrow-down text-green-400"></i>' : '<i class="fa-solid fa-arrow-up text-red-400"></i>';
+                const reply = `
+                    <div class="mb-2">✅ <b>Tersimpan!</b></div>
+                    <div class="bg-white/5 p-3 rounded-lg border border-white/10 text-xs space-y-1">
+                        <div class="flex justify-between"><span>Deskripsi:</span> <b>${newTx.desc}</b></div>
+                        <div class="flex justify-between"><span>Kategori:</span> <span class="bg-white/10 px-2 rounded">${category}</span></div>
+                        <div class="flex justify-between"><span>Dompet:</span> <b>${wallet}</b></div>
+                        <div class="flex justify-between mt-2 pt-2 border-t border-white/10">
+                            <span>Nominal:</span> 
+                            <b class="text-lg ${type === 'income' ? 'text-green-400' : 'text-red-400'}">${icon} ${this.formatCur(amount)}</b>
+                        </div>
+                    </div>
+                `;
+                this.addChatMessage(reply, 'bot');
+            },
+
+            saveData() {
+                localStorage.setItem('imers_transactions', JSON.stringify(state.transactions));
+                localStorage.setItem('imers_wallets', JSON.stringify(state.wallets));
+                localStorage.setItem('imers_debts', JSON.stringify(state.debts));
+                localStorage.setItem('imers_theme', state.theme);
+                localStorage.setItem('imers_budgets', JSON.stringify(state.budgets));
+            },
+
+            setTheme(themeName, isInit = false) {
+                if(THEMES[themeName]) {
+                    state.theme = themeName;
+                    const root = document.documentElement;
+                    const t = THEMES[themeName];
+                    
+                    root.style.setProperty('--bg-color', t.bg);
+                    root.style.setProperty('--surface-color', t.surface);
+                    root.style.setProperty('--primary-color', t.primary);
+                    root.style.setProperty('--text-main', t.text);
+                    root.style.setProperty('--text-muted', t.textMuted);
+                    root.style.setProperty('--border-color', t.border);
+                    root.style.setProperty('--border-light', t.borderLight);
+                    root.style.setProperty('--hover-bg', t.hoverBg);
+                    root.style.setProperty('--neu-light', t.neuLight);
+                    root.style.setProperty('--neu-dark', t.neuDark);
+                    root.style.setProperty('--glow-color', t.glow);
+                    root.style.setProperty('--glass-bg', t.glassBg);
+                    root.style.setProperty('--glass-shadow', t.glassShadow);
+                    root.style.setProperty('--nav-active-bg', t.navActiveBg);
+
+                    if(!isInit) {
+                        if(!document.getElementById('view-dashboard').classList.contains('hidden')) this.renderDashboard();
+                        if(!document.getElementById('view-reports').classList.contains('hidden')) this.renderReports();
+                        if(!document.getElementById('view-analysis').classList.contains('hidden')) this.renderAnalysis();
+                        this.saveData();
+                    }
+
+                    document.getElementById('color-primary').value = t.primary;
+                    document.getElementById('color-bg').value = t.bg;
+                    document.getElementById('color-surface').value = t.surface;
+                }
+            },
+
+            customColor(varName, hexValue) {
+                const root = document.documentElement;
+                if(varName === 'primary') {
+                    root.style.setProperty('--primary-color', hexValue);
+                    root.style.setProperty('--glow-color', hexValue + '33');
+                } else if(varName === 'bg') {
+                    root.style.setProperty('--bg-color', hexValue);
+                } else if(varName === 'surface') {
+                    root.style.setProperty('--surface-color', hexValue);
+                }
+                
+                if(!document.getElementById('view-dashboard').classList.contains('hidden')) this.renderDashboard();
+                if(!document.getElementById('view-reports').classList.contains('hidden')) this.renderReports();
+                if(!document.getElementById('view-analysis').classList.contains('hidden')) this.renderAnalysis();
+            },
+
+            exportReport() {
+                const btn = document.querySelector('button[onclick="app.exportReport()"]');
+                const origHtml = btn.innerHTML;
+                btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i> Generating PDF...';
+                
+                setTimeout(() => {
+                    btn.innerHTML = '<i class="fa-solid fa-check mr-2"></i> Downloaded';
+                    btn.classList.replace('bg-[var(--primary-color)]', 'bg-green-500');
+                    setTimeout(() => {
+                        btn.innerHTML = origHtml;
+                        btn.classList.replace('bg-green-500', 'bg-[var(--primary-color)]');
+                        const a = document.createElement('a');
+                        a.href = 'data:text/plain;charset=utf-8,Financial%20Report%20Data';
+                        a.download = `iMers_Report_${new Date().getTime()}.pdf`;
+                        a.click();
+                    }, 2000);
+                }, 1500);
+            }
+        };
+
+        window.addEventListener('DOMContentLoaded', () => { app.init(); });
+    </script>
+</body>
+</html>
