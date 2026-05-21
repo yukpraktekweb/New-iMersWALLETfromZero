@@ -125,11 +125,11 @@
     <!-- AUTH VIEW -->
     <div id="view-auth" class="fixed inset-0 z-50 flex items-center justify-center bg-[var(--bg-color)] hidden">
         <div class="glass p-8 w-[90%] max-w-md flex flex-col items-center fade-in">
-            <div class="w-20 h-20 rounded-full neu-flat flex items-center justify-center mb-6 text-[var(--primary-color)] text-3xl">
+            <div class="w-20 h-20 rounded-full neu-flat flex items-center justify-center mb-6 text-[var(--primary-color)] text-3xl overflow-hidden app-brand-logo-container">
                 <i class="fa-solid fa-wallet"></i>
             </div>
-            <h1 class="text-2xl font-bold mb-2 text-textMain">iMersWALLET</h1>
-            <p class="text-textMuted text-sm mb-8">Enter your 6-digit PIN</p>
+            <h1 class="text-2xl font-bold mb-2 text-textMain app-brand-name">iMersWALLET</h1>
+            <p class="text-textMuted text-sm mb-8 font-medium" id="auth-instruction">Enter your 6-digit PIN</p>
             
             <div class="flex gap-4 mb-10 justify-center h-4" id="pin-indicators">
                 <div class="w-4 h-4 rounded-full border-2 border-[var(--primary-color)] transition-all duration-200"></div>
@@ -163,10 +163,10 @@
         <!-- SIDEBAR -->
         <nav class="glass md:w-[280px] shrink-0 md:h-full h-[72px] w-full fixed md:relative bottom-0 z-40 flex md:flex-col py-2 md:py-8 px-2 md:px-6 overflow-x-auto md:overflow-y-auto mobile-nav-scroll border-t md:border-t-0 md:border-r border-[var(--border-color)]">
             <div class="hidden md:flex items-center gap-3 mb-8 w-full px-2">
-                <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-[var(--primary-color)] to-blue-500 flex items-center justify-center text-white shadow-lg shadow-[var(--glow-color)]">
+                <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-[var(--primary-color)] to-blue-500 flex items-center justify-center text-white shadow-lg shadow-[var(--glow-color)] overflow-hidden app-brand-logo-container">
                     <i class="fa-solid fa-wallet"></i>
                 </div>
-                <h2 class="text-xl font-bold tracking-wider text-textMain">iMersWALLET</h2>
+                <h2 class="text-xl font-bold tracking-wider text-textMain app-brand-name">iMersWALLET</h2>
             </div>
 
             <div class="flex md:flex-col w-max md:w-full gap-2 md:gap-1 flex-1 px-2 md:px-0 items-center md:items-stretch">
@@ -203,8 +203,8 @@
                     <span class="text-[10px] md:text-sm whitespace-nowrap">Users & Access</span>
                 </button>
                 <button onclick="app.navigate('settings')" id="nav-settings" class="nav-btn flex flex-col md:flex-row items-center gap-1 md:gap-4 text-textMuted py-2 md:py-3.5 px-4 md:px-4 rounded-xl transition-all hover:bg-[var(--hover-bg)] font-medium text-sm w-20 md:w-full">
-                    <i class="fa-regular fa-user text-xl md:text-lg md:w-6"></i>
-                    <span class="text-[10px] md:text-sm whitespace-nowrap">Bot WA & Pengaturan</span>
+                    <i class="fa-solid fa-sliders text-xl md:text-lg md:w-6"></i>
+                    <span class="text-[10px] md:text-sm whitespace-nowrap">Pengaturan & Sistem</span>
                 </button>
 
                 <div class="hidden md:block w-full h-[1px] bg-[var(--border-color)] my-2"></div>
@@ -223,7 +223,7 @@
                     Kirim chat WA ke bot asisten untuk mencatatkan pemasukan/pengeluaran secara instan.
                 </p>
                 <button onclick="app.navigate('chat')" class="w-full py-2.5 rounded-xl bg-[#0095FF] text-white font-medium text-xs flex items-center justify-center gap-2 hover:opacity-90 transition shadow-md">
-                    <i class="fa-regular fa-comment"></i> Chat Asisten WA
+                    <i class="fa-brands fa-whatsapp text-base"></i> Chat Asisten WA
                 </button>
             </div>
             
@@ -843,9 +843,10 @@
 
                 <!-- BOT WA & PENGATURAN VIEW -->
                 <div id="view-settings" class="view-section hidden fade-in w-full">
-                    <h1 class="text-2xl md:text-3xl font-bold mb-2 text-textMain">Bot WA & Pengaturan</h1>
-                    <p class="text-textMuted text-sm mb-8">Konfigurasi sistem Bot WhatsApp, API, Profil, dan Tema Tampilan.</p>
+                    <h1 class="text-2xl md:text-3xl font-bold mb-2 text-textMain">Pengaturan & Sistem</h1>
+                    <p class="text-textMuted text-sm mb-8">Konfigurasi sistem Bot WhatsApp, Keamanan, Tema Tampilan, dan Automasi Laporan.</p>
 
+                    <!-- Themes and Tuning (Existing intact) -->
                     <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
                         <div class="glass p-6">
                             <h3 class="font-semibold mb-4 text-textMain"><i class="fa-solid fa-wand-magic-sparkles mr-2 text-[var(--primary-color)]"></i> Premium Presets</h3>
@@ -899,6 +900,151 @@
                             </div>
                         </div>
                     </div>
+
+                    <!-- Dynamic App Configuration Workspace -->
+                    <form id="global-settings-form" onsubmit="app.saveGlobalSettings(event)" class="space-y-8">
+                        
+                        <!-- Row 1: Profil, Keamanan & Laporan -->
+                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                            <!-- Card: Profil & Keamanan -->
+                            <div class="neu-flat p-6 bg-[var(--glass-bg)] border border-[var(--border-light)]">
+                                <h3 class="font-bold text-textMain mb-4"><i class="fa-solid fa-shield-halved mr-2 text-[var(--primary-color)]"></i> Profil & Keamanan</h3>
+                                <div class="space-y-4">
+                                    <div class="space-y-1">
+                                        <label class="text-[10px] font-bold text-textMuted uppercase tracking-wider">Nama Brand / Aplikasi</label>
+                                        <input type="text" id="cfg-brand-name" required placeholder="iMersWALLET" class="w-full neu-pressed px-4 py-2.5 rounded-xl bg-[var(--surface-color)] text-sm font-semibold outline-none text-textMain transition focus:ring-1 focus:ring-[var(--primary-color)]">
+                                    </div>
+                                    <div class="space-y-1">
+                                        <label class="text-[10px] font-bold text-textMuted uppercase tracking-wider">URL Logo (Opsional)</label>
+                                        <input type="url" id="cfg-logo-url" placeholder="https://example.com/logo.png" class="w-full neu-pressed px-4 py-2.5 rounded-xl bg-[var(--surface-color)] text-sm outline-none text-textMain transition focus:ring-1 focus:ring-[var(--primary-color)]">
+                                    </div>
+                                    <div class="space-y-1 border-t border-[var(--border-light)] pt-4 mt-2">
+                                        <label class="text-[10px] font-bold text-red-500 uppercase tracking-wider">Ubah PIN Login Baru (6 Angka)</label>
+                                        <input type="password" id="cfg-pin" required minlength="6" maxlength="6" placeholder="******" class="w-full neu-pressed px-4 py-2.5 rounded-xl bg-[var(--surface-color)] text-sm font-bold tracking-widest outline-none text-textMain transition focus:ring-1 focus:ring-red-500">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Card: Gateway WA & Automasi -->
+                            <div class="neu-flat p-6 bg-[var(--glass-bg)] border border-[var(--border-light)]">
+                                <h3 class="font-bold text-textMain mb-4"><i class="fa-solid fa-satellite-dish mr-2 text-[var(--primary-color)]"></i> Integrasi & Automasi</h3>
+                                <div class="space-y-4">
+                                    <div class="grid grid-cols-2 gap-4">
+                                        <div class="space-y-1">
+                                            <label class="text-[10px] font-bold text-textMuted uppercase tracking-wider">WA Gateway</label>
+                                            <select id="cfg-wa-gateway" class="w-full neu-pressed px-3 py-2.5 rounded-xl bg-[var(--surface-color)] outline-none text-xs font-bold text-textMain cursor-pointer">
+                                                <option value="fonnte">Fonnte API</option>
+                                                <option value="wablas" disabled>Wablas (Coming Soon)</option>
+                                            </select>
+                                        </div>
+                                        <div class="space-y-1">
+                                            <label class="text-[10px] font-bold text-textMuted uppercase tracking-wider">Nomor Bot / Fonnte</label>
+                                            <input type="text" id="cfg-wa-number" placeholder="628..." class="w-full neu-pressed px-3 py-2.5 rounded-xl bg-[var(--surface-color)] text-xs font-semibold outline-none text-textMain">
+                                        </div>
+                                    </div>
+                                    <div class="space-y-1">
+                                        <label class="text-[10px] font-bold text-textMuted uppercase tracking-wider">API Token</label>
+                                        <input type="password" id="cfg-wa-token" placeholder="Paste Token Disini" class="w-full neu-pressed px-4 py-2.5 rounded-xl bg-[var(--surface-color)] text-sm outline-none text-textMain">
+                                    </div>
+                                    
+                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 border-t border-[var(--border-light)] pt-4 mt-2">
+                                        <div class="space-y-1">
+                                            <label class="text-[10px] font-bold text-textMuted uppercase tracking-wider">Kirim Laporan Ke Email</label>
+                                            <input type="email" id="cfg-report-email" placeholder="admin@domain.com" class="w-full neu-pressed px-3 py-2.5 rounded-xl bg-[var(--surface-color)] text-xs font-semibold outline-none text-textMain">
+                                        </div>
+                                        <div class="space-y-1">
+                                            <label class="text-[10px] font-bold text-textMuted uppercase tracking-wider">Periode Otomatis</label>
+                                            <select id="cfg-report-freq" class="w-full neu-pressed px-3 py-2.5 rounded-xl bg-[var(--surface-color)] outline-none text-xs font-bold text-textMain cursor-pointer">
+                                                <option value="daily">Harian</option>
+                                                <option value="weekly" selected>Mingguan</option>
+                                                <option value="monthly">Bulanan</option>
+                                                <option value="yearly">Tahunan</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Row 2: Fitur Toggles -->
+                        <div class="neu-flat p-6 border border-[var(--border-light)]">
+                            <h3 class="font-bold text-textMain mb-4"><i class="fa-solid fa-toggle-on mr-2 text-[var(--primary-color)]"></i> Manajemen Fitur Modul</h3>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                <div class="space-y-3">
+                                    <label class="flex justify-between items-center p-4 rounded-xl glass cursor-pointer border border-[var(--primary-color)]/20">
+                                        <div>
+                                            <p class="font-bold text-sm text-textMain">Aktifkan Modul Budgeting</p>
+                                            <p class="text-xs text-textMuted mt-0.5">Tampilkan perbandingan Budget vs Aktual dan Insight AI.</p>
+                                        </div>
+                                        <div class="relative inline-block w-10 h-6">
+                                            <input type="checkbox" id="cfg-feat-budgeting" class="peer sr-only">
+                                            <div class="w-10 h-6 bg-gray-300 rounded-full peer-checked:bg-[var(--primary-color)] transition-colors duration-300"></div>
+                                            <div class="absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition-transform duration-300 peer-checked:translate-x-4 shadow"></div>
+                                        </div>
+                                    </label>
+                                </div>
+                                <div class="space-y-2">
+                                    <p class="text-xs font-bold text-textMuted uppercase tracking-wider mb-2">Wallet yang Aktif Digunakan</p>
+                                    <div class="grid grid-cols-2 gap-3" id="cfg-active-wallets-container">
+                                        <!-- Checkboxes injected dynamically based on state.wallets -->
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Row 3: Copywriting Bot Templates -->
+                        <div class="neu-flat p-6 bg-white/40 dark:bg-[var(--surface-color)] border border-[var(--border-light)]">
+                            <div class="flex justify-between items-start mb-6">
+                                <div>
+                                    <h3 class="font-bold text-textMain"><i class="fa-solid fa-robot mr-2 text-[var(--primary-color)]"></i> Template Notifikasi & Balasan Bot WA</h3>
+                                    <p class="text-xs text-textMuted mt-1">Gunakan tag variabel dinamis untuk personalisasi gaya bahasa bot Anda.</p>
+                                </div>
+                                <span class="px-3 py-1 rounded bg-[var(--primary-color)]/10 text-[10px] font-bold text-[var(--primary-color)]"><i class="fa-solid fa-code mr-1"></i> Auto Parsed</span>
+                            </div>
+
+                            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                                <!-- Box 1 -->
+                                <div class="space-y-2">
+                                    <label class="text-[10px] font-bold text-textMain uppercase tracking-wider flex justify-between">
+                                        <span>1. Pesan Pencatatan Berhasil</span>
+                                        <span class="text-green-500 font-mono lowercase">{wallet}, {type}, {category}, {note}, {amount}</span>
+                                    </label>
+                                    <textarea id="cfg-tpl-success" rows="4" class="w-full neu-pressed px-4 py-3 rounded-xl bg-[var(--surface-color)] text-xs text-textMain outline-none resize-none leading-relaxed transition focus:ring-1 focus:ring-[var(--primary-color)]"></textarea>
+                                </div>
+                                <!-- Box 2 -->
+                                <div class="space-y-2">
+                                    <label class="text-[10px] font-bold text-textMain uppercase tracking-wider flex justify-between">
+                                        <span>2. Peringatan Anggaran Hampir Limit</span>
+                                        <span class="text-orange-500 font-mono lowercase">{category}, {wallet}, {ratio}, {spent}, {limit}</span>
+                                    </label>
+                                    <textarea id="cfg-tpl-nearbudget" rows="4" class="w-full neu-pressed px-4 py-3 rounded-xl bg-[var(--surface-color)] text-xs text-textMain outline-none resize-none leading-relaxed transition focus:ring-1 focus:ring-orange-400"></textarea>
+                                </div>
+                                <!-- Box 3 -->
+                                <div class="space-y-2">
+                                    <label class="text-[10px] font-bold text-textMain uppercase tracking-wider flex justify-between">
+                                        <span>3. Peringatan Anggaran Jebol</span>
+                                        <span class="text-red-500 font-mono lowercase">{category}, {wallet}, {spent}, {limit}</span>
+                                    </label>
+                                    <textarea id="cfg-tpl-overbudget" rows="4" class="w-full neu-pressed px-4 py-3 rounded-xl bg-[var(--surface-color)] text-xs text-textMain outline-none resize-none leading-relaxed transition focus:ring-1 focus:ring-red-500"></textarea>
+                                </div>
+                                <!-- Box 4 -->
+                                <div class="space-y-2">
+                                    <label class="text-[10px] font-bold text-textMain uppercase tracking-wider flex justify-between">
+                                        <span>4. Templat Laporan Periodik (Digest)</span>
+                                        <span class="text-blue-500 font-mono lowercase">{income}, {expense}, {balance}</span>
+                                    </label>
+                                    <textarea id="cfg-tpl-report" rows="4" class="w-full neu-pressed px-4 py-3 rounded-xl bg-[var(--surface-color)] text-xs text-textMain outline-none resize-none leading-relaxed transition focus:ring-1 focus:ring-blue-500"></textarea>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Sticky Action Button -->
+                        <div class="sticky bottom-4 z-30 flex justify-end">
+                            <button type="submit" class="px-8 py-3.5 rounded-full bg-gradient-to-r from-green-500 to-emerald-400 text-white font-bold text-sm hover:opacity-95 transition shadow-[0_4px_20px_rgba(16,185,129,0.4)] flex items-center gap-2">
+                                <i class="fa-solid fa-save"></i> Simpan Konfigurasi Sistem
+                            </button>
+                        </div>
+                    </form>
                 </div>
             
             </div> <!-- End Global Wrapper -->
@@ -995,7 +1141,7 @@
                     </div>
                 </div>
 
-                <!-- Portfolio Checklist (Cek list Wallet portofolio) -->
+                <!-- Portfolio Checklist -->
                 <div class="space-y-2 border-t border-[var(--border-light)] pt-3">
                     <label class="text-xs font-bold text-textMuted uppercase block">Portofolio Diakses</label>
                     <div class="grid grid-cols-3 gap-2">
@@ -1014,7 +1160,6 @@
                     </div>
                 </div>
 
-                <!-- Access checklist matching image_70d2f1.png -->
                 <div class="space-y-2 bg-[var(--surface-color)] p-4 rounded-xl border border-[var(--border-color)]">
                     <label class="flex items-center gap-3 cursor-pointer text-xs font-semibold text-textMain">
                         <input type="checkbox" id="user-form-active" checked class="rounded border-gray-300 text-[var(--primary-color)] focus:ring-[var(--primary-color)]">
@@ -1077,7 +1222,6 @@
             { id: 'd3', name: 'Andi (Pinjam Uang)', type: 'receivable', total: 300000, paid: 0, startDate: '2026-05-05', dueDate: '2026-06-05', installment: 300000, payments: [] }
         ];
 
-        // Anggaran bulanan bawaan per kategori
         const INITIAL_BUDGETS = {
             'Food': 1200000,
             'Bills': 1000000,
@@ -1086,45 +1230,38 @@
             'Other': 800000
         };
 
-        // Data awal pengguna bot WA sesuai referensi
         const INITIAL_USERS = [
             {
-                id: 'u1',
-                name: 'CEO Utama',
-                phone: '6287772642997',
-                email: 'ceo@imersnesia.com',
-                role: 'Admin',
-                defaultWallet: 'BCA Pribadi',
-                active: true,
-                canChatBot: true,
-                canReceiveReport: true,
-                allowedPortfolios: ['pribadi', 'bisnis', 'tabungan']
+                id: 'u1', name: 'CEO Utama', phone: '6287772642997', email: 'ceo@imersnesia.com', role: 'Admin',
+                defaultWallet: 'BCA Pribadi', active: true, canChatBot: true, canReceiveReport: true, allowedPortfolios: ['pribadi', 'bisnis', 'tabungan']
             },
             {
-                id: 'u2',
-                name: 'Ivan',
-                phone: '6282229845322',
-                email: 'ivan@imersnesia.com',
-                role: 'User',
-                defaultWallet: 'Cash',
-                active: true,
-                canChatBot: true,
-                canReceiveReport: false,
-                allowedPortfolios: ['pribadi']
+                id: 'u2', name: 'Ivan', phone: '6282229845322', email: 'ivan@imersnesia.com', role: 'User',
+                defaultWallet: 'Cash', active: true, canChatBot: true, canReceiveReport: false, allowedPortfolios: ['pribadi']
             },
             {
-                id: 'u3',
-                name: 'Kiswoyo',
-                phone: '6281316097775',
-                email: 'kiswoyo@imersnesia.com',
-                role: 'User',
-                defaultWallet: 'Cash',
-                active: true,
-                canChatBot: true,
-                canReceiveReport: true,
-                allowedPortfolios: ['pribadi', 'bisnis']
+                id: 'u3', name: 'Kiswoyo', phone: '6281316097775', email: 'kiswoyo@imersnesia.com', role: 'User',
+                defaultWallet: 'Cash', active: true, canChatBot: true, canReceiveReport: true, allowedPortfolios: ['pribadi', 'bisnis']
             }
         ];
+
+        // KONFIGURASI GLOBAL & COPYWRITING BAWAAN
+        const INITIAL_GLOBAL_SETTINGS = {
+            brandName: 'iMersWALLET',
+            logoUrl: '',
+            pin: '123456',
+            waGateway: 'fonnte',
+            waToken: '',
+            waNumber: '',
+            reportEmail: 'admin@imersnesia.com',
+            reportFreq: 'weekly',
+            enableBudgeting: true,
+            activeWallets: ['w1', 'w2', 'w3', 'w4', 'w5'],
+            tplSuccess: "✅ *Pencatatan Berhasil!*\n\nDompet: {wallet}\nTipe: {type}\nKategori: {category}\nCatatan: {note}\nNominal: *{amount}*\n\n_Keep tracking your finance!_",
+            tplNearbudget: "⚠️ *Peringatan Anggaran*\n\nKategori *{category}* di *{wallet}* sudah terpakai *{ratio}%*.\nTerpakai: {spent}\nLimit: {limit}\n\n_Yuk, mulai rem pengeluaranmu._",
+            tplOverbudget: "🚨 *PERINGATAN: Anggaran Jebol!*\n\nKategori *{category}* di dompet *{wallet}* telah melebihi batas.\nTerpakai: {spent}\nLimit: {limit}\n\n_Harap hentikan pengeluaran di pos ini!_",
+            tplReport: "📊 *Laporan Mingguan*\n\nHalo Bosku! Berikut summary arus kas kamu:\nPemasukan: *{income}*\nPengeluaran: *{expense}*\nSisa Kas: *{balance}*\n\nTetap semangat! 🚀"
+        };
 
         const state = {
             wallets: JSON.parse(localStorage.getItem('imers_wallets')) || INITIAL_WALLETS,
@@ -1132,10 +1269,11 @@
             debts: JSON.parse(localStorage.getItem('imers_debts')) || INITIAL_DEBTS,
             budgets: JSON.parse(localStorage.getItem('imers_budgets')) || INITIAL_BUDGETS,
             users: JSON.parse(localStorage.getItem('imers_users')) || INITIAL_USERS,
+            globalSettings: JSON.parse(localStorage.getItem('imers_global_settings')) || INITIAL_GLOBAL_SETTINGS,
             theme: localStorage.getItem('imers_theme') || 'soft',
             charts: {},
             generatedReport: null,
-            editingUserId: null // Menampung ID user yang sedang di-edit
+            editingUserId: null 
         };
 
         const app = {
@@ -1145,6 +1283,7 @@
                 this.setTheme(state.theme, true);
                 this.updateHeader();
                 this.populateReportWalletDropdown();
+                this.updateBrandingUI();
                 
                 if(localStorage.getItem('imers_auth') === 'true') {
                     document.getElementById('view-auth').classList.add('hidden');
@@ -1162,6 +1301,21 @@
                 });
             },
 
+            updateBrandingUI() {
+                const s = state.globalSettings;
+                // Update Name
+                document.querySelectorAll('.app-brand-name').forEach(el => el.innerText = s.brandName || 'iMersWALLET');
+                
+                // Update Logo
+                document.querySelectorAll('.app-brand-logo-container').forEach(el => {
+                    if(s.logoUrl && s.logoUrl.trim() !== '') {
+                        el.innerHTML = `<img src="${s.logoUrl}" alt="Logo" class="w-full h-full object-cover">`;
+                    } else {
+                        el.innerHTML = `<i class="fa-solid fa-wallet"></i>`;
+                    }
+                });
+            },
+
             populateReportWalletDropdown() {
                 const select = document.getElementById('report-wallet-select');
                 if(!select) return;
@@ -1174,7 +1328,9 @@
                 <option disabled>──────────</option>`;
                 
                 state.wallets.forEach(w => {
-                    html += `<option value="${w.id}">${w.name}</option>`;
+                    if(state.globalSettings.activeWallets.includes(w.id)) {
+                        html += `<option value="${w.id}">${w.name}</option>`;
+                    }
                 });
                 select.innerHTML = html;
             },
@@ -1186,7 +1342,21 @@
                 }
                 
                 if (this.currentPin.length === 6) {
-                    setTimeout(() => this.login(), 300);
+                    const savedPin = state.globalSettings.pin || '123456';
+                    if(this.currentPin === savedPin) {
+                        setTimeout(() => this.login(), 300);
+                    } else {
+                        setTimeout(() => {
+                            document.getElementById('auth-instruction').innerText = "PIN Salah! Coba lagi.";
+                            document.getElementById('auth-instruction').classList.add('text-red-500');
+                            this.currentPin = '';
+                            this.updatePinDisplay();
+                            setTimeout(() => {
+                                document.getElementById('auth-instruction').innerText = "Enter your 6-digit PIN";
+                                document.getElementById('auth-instruction').classList.remove('text-red-500');
+                            }, 2000);
+                        }, 300);
+                    }
                 }
             },
 
@@ -1237,10 +1407,16 @@
 
                 if(view === 'dashboard') this.renderDashboard();
                 if(view === 'history') this.renderHistory();
-                if(view === 'analysis') this.renderAnalysis();
+                if(view === 'analysis') {
+                    if(!state.globalSettings.enableBudgeting) {
+                        alert("Fitur Modul Budgeting & Evaluasi sedang dinonaktifkan di Pengaturan. Anda hanya melihat data kosongan.");
+                    }
+                    this.renderAnalysis();
+                }
                 if(view === 'reports') this.resetReportUI();
                 if(view === 'users') this.renderUsers();
                 if(view === 'debt') this.renderDebt();
+                if(view === 'settings') this.populateGlobalSettingsForm();
                 if(view === 'chat' && document.getElementById('chat-input')) {
                     setTimeout(() => document.getElementById('chat-input').focus(), 100);
                 }
@@ -1297,6 +1473,9 @@
                 const currentMonth = new Date().getMonth();
 
                 state.wallets.forEach(w => {
+                    // Hanya render wallet yang aktif di settings
+                    if(!state.globalSettings.activeWallets.includes(w.id)) return;
+
                     totalBal += w.balance;
                     const itemHtml = `
                     <div class="flex justify-between items-center p-2 rounded-lg hover:bg-[var(--hover-bg)] transition cursor-pointer">
@@ -1348,6 +1527,83 @@
 
                 this.renderCashflowChart();
             },
+
+            // --- MENU PENGATURAN & GLOBAL SYSTEM SETTINGS ---
+            populateGlobalSettingsForm() {
+                const s = state.globalSettings;
+                document.getElementById('cfg-brand-name').value = s.brandName;
+                document.getElementById('cfg-logo-url').value = s.logoUrl;
+                document.getElementById('cfg-pin').value = s.pin;
+
+                document.getElementById('cfg-wa-gateway').value = s.waGateway;
+                document.getElementById('cfg-wa-token').value = s.waToken;
+                document.getElementById('cfg-wa-number').value = s.waNumber;
+                
+                document.getElementById('cfg-report-email').value = s.reportEmail;
+                document.getElementById('cfg-report-freq').value = s.reportFreq;
+
+                document.getElementById('cfg-feat-budgeting').checked = s.enableBudgeting;
+
+                // Dinamis render checkbox wallet
+                const walletContainer = document.getElementById('cfg-active-wallets-container');
+                walletContainer.innerHTML = state.wallets.map(w => {
+                    const isChecked = s.activeWallets.includes(w.id) ? 'checked' : '';
+                    return `
+                    <label class="flex items-center gap-2 p-2 rounded-lg bg-[var(--surface-color)] border border-[var(--border-color)] cursor-pointer text-[10px] font-semibold text-textMain shadow-sm">
+                        <input type="checkbox" name="cfg-active-wallet" value="${w.id}" ${isChecked} class="rounded border-gray-300 text-[var(--primary-color)] focus:ring-[var(--primary-color)]">
+                        <i class="fa-solid ${w.icon} text-[var(--primary-color)]"></i> ${w.name}
+                    </label>
+                    `;
+                }).join('');
+
+                document.getElementById('cfg-tpl-success').value = s.tplSuccess;
+                document.getElementById('cfg-tpl-nearbudget').value = s.tplNearbudget;
+                document.getElementById('cfg-tpl-overbudget').value = s.tplOverbudget;
+                document.getElementById('cfg-tpl-report').value = s.tplReport;
+            },
+
+            saveGlobalSettings(e) {
+                e.preventDefault();
+
+                // Dapatkan array checkbox wallet yang dicentang
+                const activeWallets = [];
+                document.querySelectorAll('input[name="cfg-active-wallet"]:checked').forEach(cb => {
+                    activeWallets.push(cb.value);
+                });
+
+                if(activeWallets.length === 0) {
+                    alert("Minimal 1 wallet harus aktif digunakan!");
+                    return;
+                }
+
+                state.globalSettings = {
+                    brandName: document.getElementById('cfg-brand-name').value,
+                    logoUrl: document.getElementById('cfg-logo-url').value,
+                    pin: document.getElementById('cfg-pin').value,
+                    waGateway: document.getElementById('cfg-wa-gateway').value,
+                    waToken: document.getElementById('cfg-wa-token').value,
+                    waNumber: document.getElementById('cfg-wa-number').value,
+                    reportEmail: document.getElementById('cfg-report-email').value,
+                    reportFreq: document.getElementById('cfg-report-freq').value,
+                    enableBudgeting: document.getElementById('cfg-feat-budgeting').checked,
+                    activeWallets: activeWallets,
+                    tplSuccess: document.getElementById('cfg-tpl-success').value,
+                    tplNearbudget: document.getElementById('cfg-tpl-nearbudget').value,
+                    tplOverbudget: document.getElementById('cfg-tpl-overbudget').value,
+                    tplReport: document.getElementById('cfg-tpl-report').value,
+                };
+
+                this.saveData();
+                this.updateBrandingUI();
+                this.populateReportWalletDropdown(); // Refresh dropdown on reports
+
+                // Toast Feedback
+                const btn = e.target.querySelector('button[type="submit"]');
+                const orig = btn.innerHTML;
+                btn.innerHTML = '<i class="fa-solid fa-check"></i> Tersimpan Berhasil';
+                setTimeout(() => btn.innerHTML = orig, 2000);
+            },
+            // --- END PENGATURAN ---
 
             // --- MASTER LOGIC: WALLET REPORT ENGINE ---
             resetReportUI() {
@@ -1566,7 +1822,7 @@
                 printWindow.document.write(`
                 <html>
                 <head>
-                    <title>Laporan Keuangan iMersWALLET - ${r.walletName}</title>
+                    <title>Laporan Keuangan ${state.globalSettings.brandName} - ${r.walletName}</title>
                     <style>
                         body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; color: #2b3648; margin: 0; padding: 30px; line-height: 1.5; }
                         .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 3px solid #00a8cc; padding-bottom: 20px; margin-bottom: 30px; }
@@ -1592,7 +1848,7 @@
                 <body>
                     <div class="header">
                         <div class="header-logo">
-                            <h1>iMersWALLET</h1>
+                            <h1>${state.globalSettings.brandName}</h1>
                             <p>Your Financial Wallet Assistant</p>
                         </div>
                         <div class="meta-info">
@@ -1649,7 +1905,7 @@
                     </table>
 
                     <div class="footer">
-                        Laporan ini diterbitkan secara resmi melalui sistem pencatatan iMersWALLET.<br>
+                        Laporan ini diterbitkan secara resmi melalui sistem pencatatan ${state.globalSettings.brandName}.<br>
                         Developed by Terry Katar | iMersnesia.com
                     </div>
 
@@ -1682,7 +1938,7 @@
                     
                     const notification = document.createElement('div');
                     notification.className = "fixed bottom-5 right-5 glass border-l-4 border-green-500 p-4 shadow-2xl z-50 fade-in text-xs font-semibold";
-                    notification.innerHTML = `<i class="fa-solid fa-paper-plane text-green-500 mr-2"></i> Simulasi: Email PDF Laporan Bulan ${state.generatedReport.period} berhasil dikirim ke Terry Katar (admin@imersnesia.com).`;
+                    notification.innerHTML = `<i class="fa-solid fa-paper-plane text-green-500 mr-2"></i> Automasi: Email PDF Laporan Bulan ${state.generatedReport.period} berhasil dikirim ke alamat <b>${state.globalSettings.reportEmail}</b>.`;
                     document.body.appendChild(notification);
                     
                     setTimeout(() => notification.remove(), 5000);
@@ -1956,7 +2212,7 @@
                 printWindow.document.write(`
                 <html>
                 <head>
-                    <title>Kwitansi Pembayaran iMersWALLET - ${d.name}</title>
+                    <title>Kwitansi Pembayaran ${state.globalSettings.brandName} - ${d.name}</title>
                     <style>
                         body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; color: #2b3648; margin: 0; padding: 35px; line-height: 1.5; position: relative; }
                         .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px dashed #00a8cc; padding-bottom: 20px; margin-bottom: 30px; }
@@ -1996,7 +2252,7 @@
                     ${isLunas ? `<div class="lunas-stamp">LUNAS</div>` : ''}
                     <div class="header">
                         <div class="header-logo">
-                            <h1>iMersWALLET</h1>
+                            <h1>${state.globalSettings.brandName}</h1>
                             <p>Your Financial Wallet Assistant</p>
                         </div>
                         <div style="text-align: right;">
@@ -2060,7 +2316,7 @@
                         </div>
                     </div>
                     <div class="footer">
-                        Kwitansi ini valid dan diterbitkan resmi oleh iMersWALLET.<br>
+                        Kwitansi ini valid dan diterbitkan resmi oleh ${state.globalSettings.brandName}.<br>
                         Developed by Terry Katar | iMersnesia.com
                     </div>
                 </body>
@@ -2752,20 +3008,31 @@
                 }
                 this.saveData();
 
+                // Format Balasan Sukses berbasis Template
+                let replyTpl = state.globalSettings.tplSuccess;
+                replyTpl = replyTpl.replace(/{wallet}/g, wallet)
+                                   .replace(/{type}/g, type === 'income' ? 'Pemasukan' : 'Pengeluaran')
+                                   .replace(/{category}/g, category)
+                                   .replace(/{note}/g, newTx.desc)
+                                   .replace(/{amount}/g, this.formatCur(amount));
+                
+                // Convert line breaks to HTML breaks
+                replyTpl = replyTpl.replace(/\n/g, '<br>');
+                // Convert Markdown Bold to HTML Bold
+                replyTpl = replyTpl.replace(/\*(.*?)\*/g, '<b>$1</b>');
+                // Convert Markdown Italic to HTML Italic
+                replyTpl = replyTpl.replace(/_(.*?)_/g, '<i>$1</i>');
+
                 const icon = type === 'income' ? '<i class="fa-solid fa-arrow-down text-green-400"></i>' : '<i class="fa-solid fa-arrow-up text-red-400"></i>';
-                const reply = `
-                    <div class="mb-2">✅ <b>Tersimpan!</b></div>
-                    <div class="bg-white/5 p-3 rounded-lg border border-white/10 text-xs space-y-1">
-                        <div class="flex justify-between"><span>Deskripsi:</span> <b>${newTx.desc}</b></div>
-                        <div class="flex justify-between"><span>Kategori:</span> <span class="bg-white/10 px-2 rounded">${category}</span></div>
-                        <div class="flex justify-between"><span>Dompet:</span> <b>${wallet}</b></div>
-                        <div class="flex justify-between mt-2 pt-2 border-t border-white/10">
-                            <span>Nominal:</span> 
-                            <b class="text-lg ${type === 'income' ? 'text-green-400' : 'text-red-400'}">${icon} ${this.formatCur(amount)}</b>
-                        </div>
+                
+                const responseHtml = `
+                    <div class="mb-2 text-xs leading-relaxed">${replyTpl}</div>
+                    <div class="bg-white/5 p-2 rounded-lg border border-white/10 text-xs mt-3 text-right">
+                        ${icon} Saldo Updated
                     </div>
                 `;
-                this.addChatMessage(reply, 'bot');
+                
+                this.addChatMessage(responseHtml, 'bot');
             },
 
             saveData() {
@@ -2775,6 +3042,7 @@
                 localStorage.setItem('imers_theme', state.theme);
                 localStorage.setItem('imers_budgets', JSON.stringify(state.budgets));
                 localStorage.setItem('imers_users', JSON.stringify(state.users));
+                localStorage.setItem('imers_global_settings', JSON.stringify(state.globalSettings));
             },
 
             setTheme(themeName, isInit = false) {
