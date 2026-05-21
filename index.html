@@ -444,24 +444,24 @@
                             <p class="text-xs text-textMuted mt-2" id="worst-category-pct">Menyerap 0% dari seluruh anggaran bulan ini.</p>
                         </div>
 
-                        <!-- Card Perbandingan Global -->
+                        <!-- Card Perbandingan Global (PREVENT OVERLAP COLLISION BY USING GRID) -->
                         <div class="neu-flat p-6 bg-gradient-to-br from-[var(--surface-color)] to-[var(--bg-color)]">
                             <p class="text-xs font-bold text-[var(--primary-color)] uppercase tracking-wider mb-1">Status Budget Global</p>
-                            <div class="flex justify-between items-end mt-2">
+                            <div class="grid grid-cols-2 gap-2 mt-3 border-b border-[var(--border-light)] pb-3">
                                 <div>
-                                    <span class="text-xs text-textMuted">Total Terpakai</span>
-                                    <h3 class="text-2xl font-bold text-textMain" id="total-spent-analysis">Rp 0</h3>
+                                    <p class="text-[10px] uppercase font-bold text-textMuted tracking-wider">Total Terpakai</p>
+                                    <h3 class="text-lg md:text-xl font-extrabold text-textMain mt-0.5" id="total-spent-analysis">Rp 0</h3>
                                 </div>
-                                <div class="text-right">
-                                    <span class="text-xs text-textMuted">Dari Budget</span>
-                                    <h3 class="text-lg font-bold text-textMuted" id="total-budget-analysis">Rp 0</h3>
+                                <div class="text-right border-l border-[var(--border-light)] pl-4">
+                                    <p class="text-[10px] uppercase font-bold text-textMuted tracking-wider">Batas Budget</p>
+                                    <h3 class="text-base md:text-lg font-bold text-textMuted mt-1" id="total-budget-analysis">Rp 0</h3>
                                 </div>
                             </div>
                             <!-- Global Progress -->
                             <div class="w-full h-2.5 bg-black/10 dark:bg-white/5 rounded-full overflow-hidden mt-4">
                                 <div id="global-budget-progress-bar" class="h-full bg-gradient-to-r from-teal-400 to-[var(--primary-color)] rounded-full transition-all duration-1000" style="width: 0%"></div>
                             </div>
-                            <div class="flex justify-between text-[10px] text-textMuted font-bold mt-1">
+                            <div class="flex justify-between text-[10px] text-textMuted font-bold mt-2">
                                 <span id="global-budget-pct">0% Terpakai</span>
                                 <span id="global-budget-status">Sisa Aman</span>
                             </div>
