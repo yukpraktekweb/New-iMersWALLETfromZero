@@ -251,6 +251,10 @@
                             <p class="text-sm font-medium italic mt-2 text-[var(--primary-color)]" id="quote-text">"Mengelola keuangan dengan cerdas."</p>
                         </div>
                         <div class="hidden md:flex gap-2">
+                            <!-- [BARU] Tombol Sync Cloud Manual -->
+                            <button onclick="app.syncFromCloud()" class="w-10 h-10 rounded-xl neu-flat flex items-center justify-center text-textMuted hover:text-[var(--primary-color)] transition" title="Sync Database" id="btn-sync-cloud">
+                                <i class="fa-solid fa-cloud-arrow-down"></i>
+                            </button>
                             <button class="w-10 h-10 rounded-xl neu-flat flex items-center justify-center text-textMuted hover:text-[var(--primary-color)] transition"><i class="fa-solid fa-bell"></i></button>
                             <button class="w-10 h-10 rounded-xl neu-flat flex items-center justify-center text-textMuted hover:text-[var(--primary-color)] transition"><i class="fa-solid fa-search"></i></button>
                         </div>
@@ -1526,45 +1530,14 @@
                 this.currentPin = '';
                 this.updatePinDisplay();
                 this.navigate('dashboard');
+                
+                // [BARU] Tarik data dari cloud saat login berhasil
+                if (state.globalSettings.scriptUrl) {
+                    this.syncFromCloud(true); 
+                }
             },
 
             logout() {
-                localStorage.removeItem('imers_auth');
-                document.getElementById('app-container').classList.add('hidden');
-                document.getElementById('view-auth').classList.remove('hidden');
-                this.currentPin = '';
-                this.updatePinDisplay();
-            },
-
-            navigate(view) {
-                document.querySelectorAll('.view-section').forEach(el => el.classList.add('hidden'));
-                document.getElementById(`view-${view}`).classList.remove('hidden');
-                
-                document.querySelectorAll('.nav-btn').forEach(el => el.classList.remove('nav-active'));
-                if(document.getElementById(`nav-${view}`)) {
-                    document.getElementById(`nav-${view}`).classList.add('nav-active');
-                }
-
-                if(view === 'dashboard') this.renderDashboard();
-                if(view === 'history') this.renderHistory();
-                if(view === 'analysis') {
-                    if(!state.globalSettings.enableBudgeting) {
-                        alert("Fitur Modul Budgeting & Evaluasi sedang dinonaktifkan di Pengaturan. Anda hanya melihat data kosongan.");
-                    }
-                    this.renderAnalysis();
-                }
-                if(view === 'reports') this.resetReportUI();
-                if(view === 'users') this.renderUsers();
-                if(view === 'debt') this.renderDebt();
-                if(view === 'budget') this.renderBudgetList();
-                if(view === 'tutorial') this.renderTutorial();
-                if(view === 'settings') this.populateGlobalSettingsForm();
-                if(view === 'chat' && document.getElementById('chat-input')) {
-                    setTimeout(() => document.getElementById('chat-input').focus(), 100);
-                }
-            },
-
-            formatCur(amount) {
                 return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(amount);
             },
             
@@ -1598,10 +1571,14 @@
                     quote = '"Waktunya istirahat, biarkan sistem yang bekerja menjaga keuanganmu."';
                 }
                 
+                // [BARU] Cari nama user yang rolenya Admin
+                const adminUser = state.users.find(u => u.role === 'Admin');
+                const adminName = adminUser ? adminUser.name : 'Bosku';
+                
                 const greetEl = document.getElementById('welcome-greeting');
                 const quoteEl = document.getElementById('quote-text');
                 
-                if(greetEl) greetEl.innerHTML = `${greeting}, Bosku! ${icon}`;
+                if(greetEl) greetEl.innerHTML = `${greeting}, ${adminName}! ${icon}`;
                 if(quoteEl) quoteEl.innerText = quote;
             },
 
@@ -2998,8 +2975,89 @@
                 localStorage.setItem('imers_theme', state.theme);
                 localStorage.setItem('imers_budgets', JSON.stringify(state.budgets));
                 // Categories specific save is handled in saveCategory/deleteCategory
+                localStorage.setItem('imers_categories', JSON.stringify(state.categories));
                 localStorage.setItem('imers_users', JSON.stringify(state.users));
                 localStorage.setItem('imers_global_settings', JSON.stringify(state.globalSettings));
+                
+                // [BARU] Otomatis backup ke Sheet tiap ada perubahan data
+                this.syncToCloud();
+            },
+
+            // [BARU] Fungsi Lempar Data ke Google Sheets (Background)
+            async syncToCloud() {
+                const scriptUrl = state.globalSettings.scriptUrl;
+                if (!scriptUrl) return;
+                
+                try {
+                    fetch(scriptUrl, {
+                        method: 'POST',
+                        body: JSON.stringify({ action: 'syncData', state: state })
+                    }).catch(err => console.log('Sync to cloud error:', err));
+                } catch(e) {}
+            },
+
+            // [BARU] Fungsi Tarik Data dari Google Sheets
+            async syncFromCloud(isSilent = false) {
+                const scriptUrl = state.globalSettings.scriptUrl;
+                if (!scriptUrl) {
+                    if(!isSilent) alert("URL Apps Script belum diatur di Pengaturan Sistem!");
+                    return;
+                }
+
+                const btn = document.getElementById('btn-sync-cloud');
+                if(btn) btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
+
+                try {
+                    const res = await fetch(scriptUrl, {
+                        method: 'POST',
+                        body: JSON.stringify({ action: 'getData' })
+                    });
+                    const json = await res.json();
+                    
+                    if(json.status === 'success' && json.data) {
+                        state.wallets = json.data.wallets || state.wallets;
+                        state.transactions = json.data.transactions || state.transactions;
+                        state.debts = json.data.debts || state.debts;
+                        state.categories = json.data.categories || state.categories;
+                        state.budgets = json.data.budgets || state.budgets;
+                        state.users = json.data.users || state.users;
+                        
+                        const dbSettings = json.data.globalSettings;
+                        if(dbSettings) {
+                            if(!dbSettings.scriptUrl) dbSettings.scriptUrl = scriptUrl;
+                            state.globalSettings = { ...state.globalSettings, ...dbSettings };
+                        }
+                        
+                        // Simpan ke local storage tanpa memicu syncToCloud lagi (mencegah loop)
+                        localStorage.setItem('imers_transactions', JSON.stringify(state.transactions));
+                        localStorage.setItem('imers_wallets', JSON.stringify(state.wallets));
+                        localStorage.setItem('imers_debts', JSON.stringify(state.debts));
+                        localStorage.setItem('imers_budgets', JSON.stringify(state.budgets));
+                        localStorage.setItem('imers_categories', JSON.stringify(state.categories));
+                        localStorage.setItem('imers_users', JSON.stringify(state.users));
+                        localStorage.setItem('imers_global_settings', JSON.stringify(state.globalSettings));
+                        
+                        // Render ulang UI
+                        this.updateBrandingUI();
+                        this.updateHeader(); // Update sapaan dengan data Admin terbaru
+                        if(!document.getElementById('view-dashboard').classList.contains('hidden')) this.renderDashboard();
+                        if(!document.getElementById('view-users').classList.contains('hidden')) this.renderUsers();
+                        
+                        if(!isSilent) {
+                            const toast = document.createElement('div');
+                            toast.className = "fixed bottom-5 right-5 glass border-l-4 border-[var(--primary-color)] p-4 shadow-2xl z-50 fade-in text-xs font-semibold text-textMain";
+                            toast.innerHTML = `<i class="fa-solid fa-cloud-arrow-down text-[var(--primary-color)] mr-2"></i> Data berhasil disinkronisasi dari Google Sheets!`;
+                            document.body.appendChild(toast);
+                            setTimeout(() => toast.remove(), 4000);
+                        }
+                    } else {
+                        if(!isSilent) alert("Gagal menarik data: " + (json.message || "Unknown error"));
+                    }
+                } catch (e) {
+                    if(!isSilent) alert("Error koneksi ke Apps Script: " + e.message);
+                } finally {
+                    if(btn) btn.innerHTML = '<i class="fa-solid fa-cloud-arrow-down"></i>';
+                }
             },
 
             setTheme(themeName, isInit = false) {
