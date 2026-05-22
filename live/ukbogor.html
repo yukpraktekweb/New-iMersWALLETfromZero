@@ -250,9 +250,9 @@
                             <h1 class="text-2xl md:text-3xl font-bold flex items-center text-textMain" id="welcome-greeting">Selamat Datang!</h1>
                             <p class="text-sm font-medium italic mt-2 text-[var(--primary-color)]" id="quote-text">"Mengelola keuangan dengan cerdas."</p>
                         </div>
-                        <div class="hidden md:flex gap-2">
-                            <!-- [BARU] Tombol Sync Cloud Manual -->
-                            <button onclick="app.syncFromCloud()" class="w-10 h-10 rounded-xl neu-flat flex items-center justify-center text-textMuted hover:text-[var(--primary-color)] transition" title="Sync Database" id="btn-sync-cloud">
+                        <div class="hidden md:flex gap-3">
+                            <!-- [BARU] Tombol Sync Cloud Manual LEBIH MENCOLOK -->
+                            <button onclick="app.syncFromCloud()" class="w-10 h-10 rounded-xl bg-[var(--primary-color)]/10 flex items-center justify-center text-[var(--primary-color)] hover:bg-[var(--primary-color)] hover:text-white transition shadow-sm border border-[var(--primary-color)]/20" title="Sync Database" id="btn-sync-cloud">
                                 <i class="fa-solid fa-cloud-arrow-down"></i>
                             </button>
                             <button class="w-10 h-10 rounded-xl neu-flat flex items-center justify-center text-textMuted hover:text-[var(--primary-color)] transition"><i class="fa-solid fa-bell"></i></button>
@@ -1538,6 +1538,42 @@
             },
 
             logout() {
+                localStorage.removeItem('imers_auth');
+                document.getElementById('app-container').classList.add('hidden');
+                document.getElementById('view-auth').classList.remove('hidden');
+                this.currentPin = '';
+                this.updatePinDisplay();
+            },
+
+            navigate(view) {
+                document.querySelectorAll('.view-section').forEach(el => el.classList.add('hidden'));
+                document.getElementById(`view-${view}`).classList.remove('hidden');
+                
+                document.querySelectorAll('.nav-btn').forEach(el => el.classList.remove('nav-active'));
+                if(document.getElementById(`nav-${view}`)) {
+                    document.getElementById(`nav-${view}`).classList.add('nav-active');
+                }
+
+                if(view === 'dashboard') this.renderDashboard();
+                if(view === 'history') this.renderHistory();
+                if(view === 'analysis') {
+                    if(!state.globalSettings.enableBudgeting) {
+                        alert("Fitur Modul Budgeting & Evaluasi sedang dinonaktifkan di Pengaturan. Anda hanya melihat data kosongan.");
+                    }
+                    this.renderAnalysis();
+                }
+                if(view === 'reports') this.resetReportUI();
+                if(view === 'users') this.renderUsers();
+                if(view === 'debt') this.renderDebt();
+                if(view === 'budget') this.renderBudgetList();
+                if(view === 'tutorial') this.renderTutorial();
+                if(view === 'settings') this.populateGlobalSettingsForm();
+                if(view === 'chat' && document.getElementById('chat-input')) {
+                    setTimeout(() => document.getElementById('chat-input').focus(), 100);
+                }
+            },
+
+            formatCur(amount) {
                 return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(amount);
             },
             
@@ -1663,7 +1699,7 @@
 
                 document.getElementById('cfg-feat-budgeting').checked = s.enableBudgeting;
 
-                // Load Tutorial Content (NEW)
+                // Load Tutorial Content
                 document.getElementById('cfg-tutorial-content').value = s.tutorialContent || '';
 
                 // Dinamis render checkbox wallet
