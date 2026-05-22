@@ -1033,11 +1033,14 @@
                                 </div>
                                 
                                 <div class="space-y-3">
-                                    <p class="text-xs font-bold text-textMuted uppercase tracking-wider">Wallet yang Aktif Digunakan</p>
+                                    <div class="flex justify-between items-center mb-1">
+                                        <p class="text-xs font-bold text-textMuted uppercase tracking-wider">Daftar Wallet / Rekening</p>
+                                        <button type="button" onclick="app.openWalletModal()" class="text-[10px] px-3 py-1.5 rounded-lg bg-[var(--primary-color)] text-white font-bold hover:opacity-90 shadow-sm transition"><i class="fa-solid fa-plus mr-1"></i> Tambah</button>
+                                    </div>
                                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-48 overflow-y-auto pr-2" id="cfg-active-wallets-container">
                                         <!-- Checkboxes injected dynamically based on state.wallets -->
                                     </div>
-                                    <p class="text-[10px] text-textMuted italic">Nama wallet ini dinamis dan bisa diatur.</p>
+                                    <p class="text-[10px] text-textMuted italic">Centang untuk mengaktifkan wallet. Klik tombol edit/hapus untuk mengelola.</p>
                                 </div>
                             </div>
                         </div>
@@ -1263,6 +1266,43 @@
 
                 <button type="submit" class="w-full py-3 mt-2 rounded-xl bg-[var(--primary-color)] text-white font-bold text-sm hover:opacity-95 transition shadow-lg shadow-[var(--glow-color)]">
                     Simpan Kategori
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL: ADD / EDIT WALLET -->
+    <div id="modal-wallet" class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm hidden">
+        <div class="glass p-6 w-[90%] max-w-md flex flex-col fade-in">
+            <div class="flex justify-between items-center border-b border-[var(--border-light)] pb-3 mb-4">
+                <h3 class="font-bold text-lg text-textMain" id="wallet-modal-title"><i class="fa-solid fa-wallet text-[var(--primary-color)] mr-2"></i> Tambah Wallet</h3>
+                <button type="button" onclick="app.closeWalletModal()" class="w-8 h-8 rounded-full neu-flat flex items-center justify-center hover:text-red-500 transition"><i class="fa-solid fa-times"></i></button>
+            </div>
+
+            <form onsubmit="app.saveWallet(event)" class="space-y-4">
+                <input type="hidden" id="wallet-form-id">
+                
+                <div class="space-y-1">
+                    <label class="text-xs font-bold text-textMuted uppercase">Nama Wallet</label>
+                    <input type="text" id="wallet-form-name" required placeholder="Contoh: Bank Jago, Jenius, dll" class="w-full neu-pressed px-4 py-2.5 rounded-xl bg-[var(--surface-color)] text-sm font-semibold outline-none text-textMain">
+                </div>
+
+                <div class="space-y-1">
+                    <label class="text-xs font-bold text-textMuted uppercase">Group Portofolio</label>
+                    <select id="wallet-form-group" class="w-full neu-pressed px-4 py-2.5 rounded-xl bg-[var(--surface-color)] outline-none text-sm font-semibold text-textMain cursor-pointer">
+                        <option value="pribadi">Pribadi</option>
+                        <option value="bisnis">Bisnis</option>
+                        <option value="tabungan">Tabungan</option>
+                    </select>
+                </div>
+
+                <div class="space-y-1">
+                    <label class="text-xs font-bold text-textMuted uppercase">Saldo Saat Ini (Rp)</label>
+                    <input type="number" id="wallet-form-balance" required placeholder="0" class="w-full neu-pressed px-4 py-2.5 rounded-xl bg-[var(--surface-color)] text-sm font-bold outline-none text-textMain">
+                </div>
+
+                <button type="submit" class="w-full py-3 mt-2 rounded-xl bg-[var(--primary-color)] text-white font-bold text-sm hover:opacity-95 transition shadow-lg shadow-[var(--glow-color)]">
+                    Simpan Wallet
                 </button>
             </form>
         </div>
@@ -1641,21 +1681,136 @@
                 document.getElementById('cfg-tutorial-content').value = s.tutorialContent || '';
 
                 // Dinamis render checkbox wallet
-                const walletContainer = document.getElementById('cfg-active-wallets-container');
-                walletContainer.innerHTML = state.wallets.map(w => {
-                    const isChecked = s.activeWallets.includes(w.id) ? 'checked' : '';
-                    return `
-                    <label class="flex items-center gap-2 p-2 rounded-lg bg-[var(--surface-color)] border border-[var(--border-color)] cursor-pointer text-[10px] font-semibold text-textMain shadow-sm">
-                        <input type="checkbox" name="cfg-active-wallet" value="${w.id}" ${isChecked} class="rounded border-gray-300 text-[var(--primary-color)] focus:ring-[var(--primary-color)]">
-                        <i class="fa-solid ${w.icon} text-[var(--primary-color)] w-3 text-center"></i> <span class="truncate">${w.name}</span>
-                    </label>
-                    `;
-                }).join('');
+                this.renderWalletSettingsList();
 
                 document.getElementById('cfg-tpl-success').value = s.tplSuccess;
                 document.getElementById('cfg-tpl-nearbudget').value = s.tplNearbudget;
                 document.getElementById('cfg-tpl-overbudget').value = s.tplOverbudget;
                 document.getElementById('cfg-tpl-report').value = s.tplReport;
+            },
+
+            renderWalletSettingsList() {
+                const s = state.globalSettings;
+                const walletContainer = document.getElementById('cfg-active-wallets-container');
+                walletContainer.innerHTML = state.wallets.map(w => {
+                    const isChecked = s.activeWallets.includes(w.id) ? 'checked' : '';
+                    return `
+                    <div class="flex items-center justify-between p-2 rounded-lg bg-[var(--surface-color)] border border-[var(--border-color)] shadow-sm hover:shadow-md transition">
+                        <label class="flex items-center gap-2 cursor-pointer text-[10px] font-semibold text-textMain flex-1 overflow-hidden">
+                            <input type="checkbox" name="cfg-active-wallet" value="${w.id}" ${isChecked} class="rounded border-gray-300 text-[var(--primary-color)] focus:ring-[var(--primary-color)]">
+                            <i class="fa-solid ${w.icon || 'fa-wallet'} text-[var(--primary-color)] w-3 text-center"></i> <span class="truncate">${w.name}</span>
+                        </label>
+                        <div class="flex gap-1 z-10">
+                            <button type="button" onclick="app.openWalletModal('${w.id}')" class="w-6 h-6 flex items-center justify-center rounded text-blue-500 hover:bg-blue-500 hover:text-white transition"><i class="fa-solid fa-pen text-[10px]"></i></button>
+                            <button type="button" onclick="app.deleteWallet('${w.id}')" class="w-6 h-6 flex items-center justify-center rounded text-red-500 hover:bg-red-500 hover:text-white transition"><i class="fa-solid fa-trash text-[10px]"></i></button>
+                        </div>
+                    </div>
+                    `;
+                }).join('');
+            },
+
+            syncActiveWalletsToState() {
+                const activeWallets = [];
+                document.querySelectorAll('input[name="cfg-active-wallet"]:checked').forEach(cb => {
+                    activeWallets.push(cb.value);
+                });
+                if(document.querySelectorAll('input[name="cfg-active-wallet"]').length > 0) {
+                   state.globalSettings.activeWallets = activeWallets;
+                }
+            },
+
+            openWalletModal(walletId = null) {
+                this.syncActiveWalletsToState(); 
+
+                const modal = document.getElementById('modal-wallet');
+                const title = document.getElementById('wallet-modal-title');
+                
+                if (walletId) {
+                    const w = state.wallets.find(x => x.id === walletId);
+                    if(w) {
+                        title.innerHTML = '<i class="fa-solid fa-pen-to-square text-[var(--primary-color)] mr-2"></i> Edit Wallet';
+                        document.getElementById('wallet-form-id').value = w.id;
+                        document.getElementById('wallet-form-name').value = w.name;
+                        document.getElementById('wallet-form-group').value = w.group;
+                        document.getElementById('wallet-form-balance').value = w.balance;
+                    }
+                } else {
+                    title.innerHTML = '<i class="fa-solid fa-wallet text-[var(--primary-color)] mr-2"></i> Tambah Wallet';
+                    document.getElementById('wallet-form-id').value = '';
+                    document.getElementById('wallet-form-name').value = '';
+                    document.getElementById('wallet-form-group').value = 'pribadi';
+                    document.getElementById('wallet-form-balance').value = '0';
+                }
+                modal.classList.remove('hidden');
+            },
+
+            closeWalletModal() {
+                document.getElementById('modal-wallet').classList.add('hidden');
+            },
+
+            saveWallet(e) {
+                e.preventDefault();
+                const id = document.getElementById('wallet-form-id').value;
+                const name = document.getElementById('wallet-form-name').value.trim();
+                const group = document.getElementById('wallet-form-group').value;
+                const balance = parseInt(document.getElementById('wallet-form-balance').value) || 0;
+
+                if (!name) return;
+
+                if (id) {
+                    // Edit existing
+                    const wIndex = state.wallets.findIndex(x => x.id === id);
+                    if (wIndex >= 0) {
+                        const oldName = state.wallets[wIndex].name;
+                        if(oldName !== name) {
+                            state.transactions.forEach(t => {
+                                if(t.wallet === oldName) t.wallet = name;
+                            });
+                        }
+
+                        state.wallets[wIndex].name = name;
+                        state.wallets[wIndex].group = group;
+                        state.wallets[wIndex].balance = balance;
+                    }
+                } else {
+                    // Add new
+                    const newId = 'w' + Date.now();
+                    state.wallets.push({
+                        id: newId,
+                        name: name,
+                        balance: balance,
+                        icon: 'fa-wallet',
+                        color: 'text-blue-500',
+                        group: group
+                    });
+                    state.globalSettings.activeWallets.push(newId);
+                }
+
+                this.saveData();
+                this.closeWalletModal();
+                this.renderWalletSettingsList();
+                this.populateReportWalletDropdown(); // update dropdown
+            },
+
+            deleteWallet(walletId) {
+                this.syncActiveWalletsToState();
+
+                const w = state.wallets.find(x => x.id === walletId);
+                if(!w) return;
+
+                if(state.wallets.length <= 1) {
+                    alert("Harus ada minimal 1 wallet di sistem.");
+                    return;
+                }
+
+                if(confirm(`Yakin ingin menghapus wallet "${w.name}"?`)) {
+                    state.wallets = state.wallets.filter(x => x.id !== walletId);
+                    state.globalSettings.activeWallets = state.globalSettings.activeWallets.filter(id => id !== walletId);
+                    
+                    this.saveData();
+                    this.renderWalletSettingsList();
+                    this.populateReportWalletDropdown(); // update dropdown
+                }
             },
 
             saveGlobalSettings(e) {
