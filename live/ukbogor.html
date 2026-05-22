@@ -2226,6 +2226,9 @@
                     // Send POST request to Apps Script Web App
                     await fetch(scriptUrl, {
                         method: 'POST',
+                        headers: {
+                            'Content-Type': 'text/plain;charset=utf-8',
+                        },
                         body: JSON.stringify(payload)
                     });
 
@@ -2241,7 +2244,7 @@
 
                 } catch (error) {
                     console.error("Error sending to Apps Script:", error);
-                    alert("Gagal menghubungi Apps Script. Pastikan URL Web App sudah benar dan memiliki izin akses.");
+                    alert("Gagal menghubungi Apps Script. Pastikan URL Web App berakhiran /exec dan koneksi internet stabil.");
                 } finally {
                     setTimeout(() => {
                         btn.innerHTML = origHtml;
@@ -3027,6 +3030,9 @@
                 try {
                     fetch(scriptUrl, {
                         method: 'POST',
+                        headers: {
+                            'Content-Type': 'text/plain;charset=utf-8',
+                        },
                         body: JSON.stringify({ action: 'syncData', state: state })
                     }).catch(err => console.log('Sync to cloud error:', err));
                 } catch(e) {}
@@ -3046,6 +3052,9 @@
                 try {
                     const res = await fetch(scriptUrl, {
                         method: 'POST',
+                        headers: {
+                            'Content-Type': 'text/plain;charset=utf-8',
+                        },
                         body: JSON.stringify({ action: 'getData' })
                     });
                     const json = await res.json();
@@ -3090,7 +3099,8 @@
                         if(!isSilent) alert("Gagal menarik data: " + (json.message || "Unknown error"));
                     }
                 } catch (e) {
-                    if(!isSilent) alert("Error koneksi ke Apps Script: " + e.message);
+                    console.error(e);
+                    if(!isSilent) alert("Error koneksi ke Apps Script. Pastikan URL Web App benar dan di-deploy ke 'Siapa Saja' (Anyone).");
                 } finally {
                     if(btn) btn.innerHTML = '<i class="fa-solid fa-cloud-arrow-down"></i>';
                 }
